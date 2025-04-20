@@ -37,7 +37,7 @@ export function TaskItem({ task }: TaskItemProps) {
     if (!timeString) return ""
     // HH:MM:SS 形式から HH:MM 形式に変換
     if (timeString.includes(":")) {
-      // 最初の5文字（HH:MM）だけを取得
+      // 最初の5文���（HH:MM）だけを取得
       return timeString.substring(0, 5)
     }
     return timeString
