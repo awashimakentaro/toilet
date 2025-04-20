@@ -28,7 +28,8 @@ export function SignupForm() {
     setIsLoading(true)
 
     try {
-      await signUp(email, password)
+      // リダイレクトURLを指定してサインアップ
+      await signUp(email, password, `${window.location.origin}/auth/callback`)
       setIsSuccess(true)
       setTimeout(() => {
         router.push("/auth/login")
@@ -49,7 +50,7 @@ export function SignupForm() {
 
         {isSuccess && (
           <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            アカウントが作成されました！確認メールを送信しました。ログインページにリダイレクトします...
+            アカウントが作成されました！確認メールを送信しました。メールを確認してアカウントを有効化してください。
           </div>
         )}
 

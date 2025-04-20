@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -62,6 +63,11 @@ export function LoginForm() {
             className="w-full p-2 border border-gray-300 rounded"
             required
           />
+          <div className="text-right mt-1">
+            <Link href="/auth/forgot-password" className="text-sm text-blue-500 hover:underline">
+              パスワードをお忘れですか？
+            </Link>
+          </div>
         </div>
 
         <button

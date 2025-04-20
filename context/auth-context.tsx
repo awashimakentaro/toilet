@@ -11,7 +11,7 @@ type AuthContextType = {
   user: User | null
   session: Session | null
   isLoading: boolean
-  signUp: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, redirectTo?: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
 }
@@ -76,12 +76,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase])
 
   // サインアップ関数
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, redirectTo?: string) => {
     if (!supabase) throw new Error("Supabaseクライアントが初期化されていません")
+
+    const options = redirectTo
+      ? {
+          emailRedirectTo: redirectTo,
+        }
+      : undefined
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options,
     })
 
     if (error) {
