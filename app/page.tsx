@@ -16,7 +16,7 @@ function TodoApp() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
-    if (over && over.id === "toilet" && active.data.current?.task.completed) {
+    if (over && over.id === "toilet") {
       console.log("タスクがトイレにドロップされました！") // デバッグ用
 
       // アニメーションを開始

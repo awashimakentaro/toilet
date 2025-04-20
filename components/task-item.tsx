@@ -12,13 +12,13 @@ interface TaskItemProps {
 }
 
 export function TaskItem({ task }: TaskItemProps) {
-  const { toggleTask, addToFavorites } = useTodo()
+  const { addToFavorites } = useTodo()
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
     data: {
       task,
     },
-    disabled: !task.completed, // 完了したタスクのみドラッグ可能
+    // disabled: !task.completed を削除し、常にドラッグ可能にする
   })
 
   const style = {
@@ -35,6 +35,11 @@ export function TaskItem({ task }: TaskItemProps) {
   // 時間を表示用にフォーマット
   const formatTime = (timeString: string | undefined) => {
     if (!timeString) return ""
+    // HH:MM:SS 形式から HH:MM 形式に変換
+    if (timeString.includes(":")) {
+      // 最初の5文字（HH:MM）だけを取得
+      return timeString.substring(0, 5)
+    }
     return timeString
   }
 
@@ -49,8 +54,8 @@ export function TaskItem({ task }: TaskItemProps) {
       {...listeners}
       {...attributes}
       className={`relative p-4 mb-3 bg-[var(--card)] rounded-lg border-2 border-black flex flex-col ${
-        task.completed ? "opacity-70" : ""
-      } ${transform ? "z-10" : ""} ${task.completed ? "cursor-grab" : "cursor-default"}`}
+        transform ? "z-10" : ""
+      } cursor-grab`}
     >
       <div className="flex items-center justify-between mb-2">
         <span className="text-xl font-bold">{task.text}</span>
@@ -62,12 +67,7 @@ export function TaskItem({ task }: TaskItemProps) {
           >
             ⭐
           </button>
-          <input
-            type="checkbox"
-            checked={task.completed}
-            onChange={() => toggleTask(task.id)}
-            className="w-6 h-6 border-2 border-black"
-          />
+          {/* チェックボックスを削除 */}
         </div>
       </div>
 
@@ -75,11 +75,9 @@ export function TaskItem({ task }: TaskItemProps) {
         <div className="text-sm bg-blue-100 p-1 px-2 rounded-md inline-block self-start">🕒 {timeDisplay}</div>
       )}
 
-      {task.completed && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 rounded-lg pointer-events-none">
-          <p className="text-sm text-white bg-black bg-opacity-70 px-2 py-1 rounded">ドラッグしてトイレに流す</p>
-        </div>
-      )}
+      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 rounded-lg pointer-events-none opacity-0 hover:opacity-100 transition-opacity">
+        <p className="text-sm text-white bg-black bg-opacity-70 px-2 py-1 rounded">ドラッグしてトイレに流す</p>
+      </div>
     </div>
   )
 }
