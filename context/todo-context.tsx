@@ -11,13 +11,13 @@ interface TodoContextType {
   tasks: Task[]
   favoriteTasks: string[]
   isLoading: boolean
-  addTask: (text: string) => Promise<void>
+  addTask: (text: string, startTime?: string, endTime?: string) => Promise<void>
   toggleTask: (id: string) => Promise<void>
   deleteTask: (id: string) => Promise<void>
   flushTask: (id: string) => Promise<void>
   addToFavorites: (text: string) => Promise<void>
   removeFromFavorites: (text: string) => Promise<void>
-  addFavoriteToTasks: (text: string) => Promise<void>
+  addFavoriteToTasks: (text: string, startTime?: string, endTime?: string) => Promise<void>
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
@@ -51,7 +51,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
           .from("tasks")
           .select("*")
           .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
+          .order("start_time", { ascending: true }) // 開始時間でソート
 
         if (tasksError) throw tasksError
 
@@ -69,6 +69,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
             id: task.id,
             text: task.text,
             completed: task.completed,
+            startTime: task.start_time,
+            endTime: task.end_time,
           })),
         )
 
@@ -84,13 +86,21 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   }, [user, supabase])
 
   // タスクを追加
-  const addTask = async (text: string) => {
+  const addTask = async (text: string, startTime?: string, endTime?: string) => {
     if (!supabase || !user) return
 
     try {
       const { data, error } = await supabase
         .from("tasks")
-        .insert([{ user_id: user.id, text, completed: false }])
+        .insert([
+          {
+            user_id: user.id,
+            text,
+            completed: false,
+            start_time: startTime || null,
+            end_time: endTime || null,
+          },
+        ])
         .select()
         .single()
 
@@ -101,6 +111,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
           id: data.id,
           text: data.text,
           completed: data.completed,
+          startTime: data.start_time,
+          endTime: data.end_time,
         },
         ...tasks,
       ])
@@ -186,8 +198,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   }
 
   // お気に入りタスクをタスクリストに追加
-  const addFavoriteToTasks = async (text: string) => {
-    await addTask(text)
+  const addFavoriteToTasks = async (text: string, startTime?: string, endTime?: string) => {
+    await addTask(text, startTime, endTime)
   }
 
   return (

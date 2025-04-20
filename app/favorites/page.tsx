@@ -9,26 +9,114 @@ import { ProtectedRoute } from "@/components/auth/protected-route"
 
 function FavoriteTaskItem({ text }: { text: string }) {
   const { removeFromFavorites, addFavoriteToTasks } = useTodo()
+  const [showTimeForm, setShowTimeForm] = useState(false)
+  const [startTime, setStartTime] = useState("")
+  const [endTime, setEndTime] = useState("")
+
+  const handleAddToTasks = async () => {
+    if (!showTimeForm) {
+      // フォームを表示する
+      setShowTimeForm(true)
+      return
+    }
+
+    // 時間が入力されている場合のみ追加処理を実行
+    if (startTime && endTime) {
+      await addFavoriteToTasks(text, startTime, endTime)
+      // フォームをリセット
+      setShowTimeForm(false)
+      setStartTime("")
+      setEndTime("")
+    }
+  }
+
+  const handleAddWithoutTime = async () => {
+    // 時間なしで追加
+    await addFavoriteToTasks(text)
+    setShowTimeForm(false)
+  }
+
+  const handleCancel = () => {
+    setShowTimeForm(false)
+    setStartTime("")
+    setEndTime("")
+  }
 
   return (
-    <div className="p-4 mb-3 bg-[var(--card)] rounded-lg border-2 border-black flex items-center justify-between">
-      <span className="text-xl font-bold">{text}</span>
-      <div className="flex space-x-2">
+    <div className="p-4 mb-3 bg-[var(--card)] rounded-lg border-2 border-black">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xl font-bold">{text}</span>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => removeFromFavorites(text)}
+            className="bg-red-500 text-white px-3 py-1 rounded-lg border border-black"
+            aria-label="お気に入りから削除"
+          >
+            削除
+          </button>
+        </div>
+      </div>
+
+      {showTimeForm ? (
+        <div className="mt-2">
+          <div className="grid grid-cols-2 gap-4 mb-2">
+            <div>
+              <label htmlFor={`start-time-${text}`} className="block text-sm font-medium mb-1">
+                開始時間
+              </label>
+              <input
+                id={`start-time-${text}`}
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full p-2 bg-white rounded-lg border-2 border-black"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor={`end-time-${text}`} className="block text-sm font-medium mb-1">
+                終了時間
+              </label>
+              <input
+                id={`end-time-${text}`}
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-full p-2 bg-white rounded-lg border-2 border-black"
+                required
+              />
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={handleAddToTasks}
+              disabled={!startTime || !endTime}
+              className={`px-3 py-1 rounded-lg border border-black ${
+                !startTime || !endTime ? "bg-gray-400" : "bg-green-500 text-white"
+              }`}
+            >
+              時間指定で追加
+            </button>
+            <button
+              onClick={handleAddWithoutTime}
+              className="bg-blue-500 text-white px-3 py-1 rounded-lg border border-black"
+            >
+              時間なしで追加
+            </button>
+            <button onClick={handleCancel} className="bg-gray-300 px-3 py-1 rounded-lg border border-black">
+              キャンセル
+            </button>
+          </div>
+        </div>
+      ) : (
         <button
-          onClick={() => addFavoriteToTasks(text)}
+          onClick={handleAddToTasks}
           className="bg-green-500 text-white px-3 py-1 rounded-lg border border-black"
           aria-label="タスクに追加"
         >
-          追加
+          予定に追加
         </button>
-        <button
-          onClick={() => removeFromFavorites(text)}
-          className="bg-red-500 text-white px-3 py-1 rounded-lg border border-black"
-          aria-label="お気に入りから削除"
-        >
-          削除
-        </button>
-      </div>
+      )}
     </div>
   )
 }
@@ -52,7 +140,7 @@ function AddFavoriteForm() {
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="よく使うタスクを入力..."
+          placeholder="よく使う予定を入力..."
           className="flex-1 p-3 bg-[var(--card)] rounded-lg border-2 border-black"
         />
         <button type="submit" className="bg-[var(--header)] text-white px-4 py-2 rounded-lg border-2 border-black">
@@ -70,8 +158,8 @@ function FavoritesPage() {
     <div className="max-w-md mx-auto p-4">
       <Header />
 
-      <h2 className="text-2xl font-bold mb-4">よく使うタスク</h2>
-      <p className="mb-4">ここに保存したタスクは、簡単にタスクリストに追加できます。</p>
+      <h2 className="text-2xl font-bold mb-4">よく使う予定</h2>
+      <p className="mb-4">ここに保存した予定は、簡単に予定リストに追加できます。</p>
 
       <AddFavoriteForm />
 
@@ -81,8 +169,8 @@ function FavoritesPage() {
         </div>
       ) : favoriteTasks.length === 0 ? (
         <div className="text-center p-8 bg-[var(--card)] rounded-lg border-2 border-black my-4">
-          <p className="text-lg">よく使うタスクがありません</p>
-          <p>上のフォームからタスクを追加してください</p>
+          <p className="text-lg">よく使う予定がありません</p>
+          <p>上のフォームから予定を追加してください</p>
         </div>
       ) : (
         <div className="space-y-2">

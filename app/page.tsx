@@ -46,6 +46,8 @@ function TodoApp() {
       <div className="max-w-md mx-auto p-4">
         <Header />
 
+        <h2 className="text-2xl font-bold mb-4">今日の予定表</h2>
+
         <AddTaskForm />
 
         {isLoading ? (
@@ -54,8 +56,8 @@ function TodoApp() {
           </div>
         ) : tasks.length === 0 ? (
           <div className="text-center p-8 bg-[var(--card)] rounded-lg border-2 border-black my-4">
-            <p className="text-lg">タスクがありません</p>
-            <p>上のフォームからタスクを追加してください</p>
+            <p className="text-lg">予定がありません</p>
+            <p>上のフォームから予定を追加してください</p>
           </div>
         ) : (
           <div className="space-y-2">

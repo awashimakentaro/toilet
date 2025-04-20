@@ -31,6 +31,8 @@ export interface Database {
           completed: boolean
           created_at: string
           updated_at: string
+          start_time: string | null
+          end_time: string | null
         }
         Insert: {
           id?: string
@@ -39,6 +41,8 @@ export interface Database {
           completed?: boolean
           created_at?: string
           updated_at?: string
+          start_time?: string | null
+          end_time?: string | null
         }
         Update: {
           id?: string
@@ -47,6 +51,8 @@ export interface Database {
           completed?: boolean
           created_at?: string
           updated_at?: string
+          start_time?: string | null
+          end_time?: string | null
         }
       }
       favorite_tasks: {

@@ -2,6 +2,8 @@ export interface Task {
   id: string
   text: string
   completed: boolean
+  startTime?: string // 開始時間（HH:MM形式）
+  endTime?: string // 終了時間（HH:MM形式）
 }
 
 export interface Profile {

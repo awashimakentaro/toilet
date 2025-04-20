@@ -21,7 +21,7 @@ export function Header() {
       <h1 className="text-3xl font-bold mb-4">
         うんこフラッシュ
         <br />
-        TODOアプリ
+        スケジュール管理
       </h1>
 
       {user ? (
@@ -49,7 +49,7 @@ export function Header() {
             pathname === "/" ? "bg-white text-[var(--header)]" : "bg-transparent"
           }`}
         >
-          タスク一覧
+          予定表
         </Link>
         <Link
           href="/favorites"
@@ -57,7 +57,7 @@ export function Header() {
             pathname === "/favorites" ? "bg-white text-[var(--header)]" : "bg-transparent"
           }`}
         >
-          よく使うタスク
+          よく使う予定
         </Link>
       </nav>
     </header>
