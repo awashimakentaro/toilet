@@ -4,7 +4,7 @@ import type React from "react"
 
 import { Header } from "@/components/header"
 import { TodoProvider, useTodo } from "@/context/todo-context"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 
 function FavoriteTaskItem({ text }: { text: string }) {
@@ -12,6 +12,22 @@ function FavoriteTaskItem({ text }: { text: string }) {
   const [showTimeForm, setShowTimeForm] = useState(false)
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // コンポーネントがマウントされたときに音声要素を作成
+  if (typeof window !== "undefined" && !audioRef.current) {
+    audioRef.current = new Audio("/poop-sound.mp3")
+  }
+
+  const playPoopSound = () => {
+    if (audioRef.current) {
+      // 音声を最初から再生するためにcurrentTimeをリセット
+      audioRef.current.currentTime = 0
+      audioRef.current.play().catch((e) => {
+        console.error("音声再生エラー:", e)
+      })
+    }
+  }
 
   const handleAddToTasks = async () => {
     if (!showTimeForm) {
@@ -27,6 +43,8 @@ function FavoriteTaskItem({ text }: { text: string }) {
       setShowTimeForm(false)
       setStartTime("")
       setEndTime("")
+      // 音を再生
+      playPoopSound()
     }
   }
 
@@ -34,6 +52,8 @@ function FavoriteTaskItem({ text }: { text: string }) {
     // 時間なしで追加
     await addFavoriteToTasks(text)
     setShowTimeForm(false)
+    // 音を再生
+    playPoopSound()
   }
 
   const handleCancel = () => {

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useTodo } from "@/context/todo-context"
 
 export function AddTaskForm() {
@@ -11,6 +11,22 @@ export function AddTaskForm() {
   const [endTime, setEndTime] = useState("")
   const [isFormOpen, setIsFormOpen] = useState(false)
   const { addTask } = useTodo()
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // コンポーネントがマウントされたときに音声要素を作成
+  if (typeof window !== "undefined" && !audioRef.current) {
+    audioRef.current = new Audio("/poop-sound.mp3")
+  }
+
+  const playPoopSound = () => {
+    if (audioRef.current) {
+      // 音声を最初から再生するためにcurrentTimeをリセット
+      audioRef.current.currentTime = 0
+      audioRef.current.play().catch((e) => {
+        console.error("音声再生エラー:", e)
+      })
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,6 +36,9 @@ export function AddTaskForm() {
       setStartTime("")
       setEndTime("")
       setIsFormOpen(false)
+
+      // 予定追加時に音を再生
+      playPoopSound()
     }
   }
 
