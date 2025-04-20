@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #7dd3e7;
+  --foreground: #000000;
+  --header: #f08080;
+  --card: #f5f5dc;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: sans-serif;
+}
+
+/* トイレの水が渦を巻くアニメーション */
+@keyframes swirl {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(0.8) rotate(180deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.2) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* うんちが流れるアニメーション */
+@keyframes poop-flush {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: translate(-50%, -30%) scale(0.9) rotate(20deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(-50%, -10%) scale(0.7) rotate(-20deg);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translate(-50%, 10%) scale(0.5) rotate(10deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-50%, 30%) scale(0.2) rotate(-10deg);
+    opacity: 0;
+  }
+}
+
+/* トイレが揺れるアニメーション */
+@keyframes toilet-shake {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px) rotate(-2deg);
+  }
+  40% {
+    transform: translateX(5px) rotate(2deg);
+  }
+  60% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+  80% {
+    transform: translateX(3px) rotate(1deg);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.toilet-shake {
+  animation: toilet-shake 0.5s ease-in-out;
+}
+
+.water-swirl {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #7dd3e7 0%, #5bbcd2 100%);
+  animation: swirl 2s forwards;
+}
+
+.poop {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  font-size: 2.5rem;
+  animation: poop-flush 2s forwards;
+  z-index: 10;
+}
+
+.splash {
+  position: absolute;
+  background-color: #7dd3e7;
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: splash 0.5s forwards;
+}
+
+@keyframes splash {
+  0% {
+    transform: scale(0);
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
