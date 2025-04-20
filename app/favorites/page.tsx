@@ -6,12 +6,15 @@ import { Header } from "@/components/header"
 import { TodoProvider, useTodo } from "@/context/todo-context"
 import { useState, useRef } from "react"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { generatePoopAnalysis } from "@/lib/poop-analysis"
 
 function FavoriteTaskItem({ text }: { text: string }) {
   const { removeFromFavorites, addFavoriteToTasks } = useTodo()
   const [showTimeForm, setShowTimeForm] = useState(false)
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
+  const [analysisResult, setAnalysisResult] = useState<ReturnType<typeof generatePoopAnalysis> | null>(null)
+  const [showAnalysis, setShowAnalysis] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // コンポーネントがマウントされたときに音声要素を作成
@@ -29,6 +32,14 @@ function FavoriteTaskItem({ text }: { text: string }) {
     }
   }
 
+  const handleAnalyze = () => {
+    if (startTime && endTime) {
+      const analysis = generatePoopAnalysis(text, startTime, endTime)
+      setAnalysisResult(analysis)
+      setShowAnalysis(true)
+    }
+  }
+
   const handleAddToTasks = async () => {
     if (!showTimeForm) {
       // フォームを表示する
@@ -36,16 +47,21 @@ function FavoriteTaskItem({ text }: { text: string }) {
       return
     }
 
-    // 時間が入力されている場合のみ追加処理を実行
+    // 時間が入力されている場合は解析を表示
     if (startTime && endTime) {
-      await addFavoriteToTasks(text, startTime, endTime)
-      // フォームをリセット
-      setShowTimeForm(false)
-      setStartTime("")
-      setEndTime("")
-      // 音を再生
-      playPoopSound()
+      handleAnalyze()
     }
+  }
+
+  const handleConfirmAdd = async () => {
+    await addFavoriteToTasks(text, startTime, endTime)
+    setShowTimeForm(false)
+    setStartTime("")
+    setEndTime("")
+    setShowAnalysis(false)
+    setAnalysisResult(null)
+    // 音を再生
+    playPoopSound()
   }
 
   const handleAddWithoutTime = async () => {
@@ -60,82 +76,123 @@ function FavoriteTaskItem({ text }: { text: string }) {
     setShowTimeForm(false)
     setStartTime("")
     setEndTime("")
+    setShowAnalysis(false)
+    setAnalysisResult(null)
   }
 
   return (
     <div className="p-4 mb-3 bg-[var(--card)] rounded-lg border-2 border-black">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xl font-bold">{text}</span>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => removeFromFavorites(text)}
-            className="bg-red-500 text-white px-3 py-1 rounded-lg border border-black"
-            aria-label="お気に入りから削除"
-          >
-            削除
-          </button>
-        </div>
-      </div>
+      {showAnalysis && analysisResult ? (
+        <div>
+          <h3 className="text-xl font-bold mb-2 flex items-center">
+            {analysisResult.emoji} {analysisResult.title}
+          </h3>
 
-      {showTimeForm ? (
-        <div className="mt-2">
-          <div className="grid grid-cols-2 gap-4 mb-2">
-            <div>
-              <label htmlFor={`start-time-${text}`} className="block text-sm font-medium mb-1">
-                開始時間
-              </label>
-              <input
-                id={`start-time-${text}`}
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full p-2 bg-white rounded-lg border-2 border-black"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor={`end-time-${text}`} className="block text-sm font-medium mb-1">
-                終了時間
-              </label>
-              <input
-                id={`end-time-${text}`}
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full p-2 bg-white rounded-lg border-2 border-black"
-                required
-              />
+          <div className="bg-white p-3 rounded-lg border-2 border-black mb-4">
+            <p className="text-sm mb-2">
+              <span className="font-bold">予定:</span> {text}
+            </p>
+            {startTime && endTime && (
+              <p className="text-sm">
+                <span className="font-bold">時間:</span> {startTime} 〜 {endTime}
+              </p>
+            )}
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-sm whitespace-pre-line">{analysisResult.description}</p>
             </div>
           </div>
+
           <div className="flex space-x-2">
             <button
-              onClick={handleAddToTasks}
-              disabled={!startTime || !endTime}
-              className={`px-3 py-1 rounded-lg border border-black ${
-                !startTime || !endTime ? "bg-gray-400" : "bg-green-500 text-white"
-              }`}
+              onClick={handleConfirmAdd}
+              className="flex-1 py-2 px-4 bg-[var(--header)] text-white rounded-lg border-2 border-black hover:opacity-90 transition-colors"
             >
-              時間指定で追加
+              この予定を追加する
             </button>
             <button
-              onClick={handleAddWithoutTime}
-              className="bg-blue-500 text-white px-3 py-1 rounded-lg border border-black"
+              onClick={handleCancel}
+              className="py-2 px-4 bg-gray-300 rounded-lg border-2 border-black hover:bg-gray-400 transition-colors"
             >
-              時間なしで追加
-            </button>
-            <button onClick={handleCancel} className="bg-gray-300 px-3 py-1 rounded-lg border border-black">
               キャンセル
             </button>
           </div>
         </div>
       ) : (
-        <button
-          onClick={handleAddToTasks}
-          className="bg-green-500 text-white px-3 py-1 rounded-lg border border-black"
-          aria-label="タスクに追加"
-        >
-          予定に追加
-        </button>
+        <>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xl font-bold">{text}</span>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => removeFromFavorites(text)}
+                className="bg-red-500 text-white px-3 py-1 rounded-lg border border-black"
+                aria-label="お気に入りから削除"
+              >
+                削除
+              </button>
+            </div>
+          </div>
+
+          {showTimeForm ? (
+            <div className="mt-2">
+              <div className="grid grid-cols-2 gap-4 mb-2">
+                <div>
+                  <label htmlFor={`start-time-${text}`} className="block text-sm font-medium mb-1">
+                    開始時間
+                  </label>
+                  <input
+                    id={`start-time-${text}`}
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="w-full p-2 bg-white rounded-lg border-2 border-black"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor={`end-time-${text}`} className="block text-sm font-medium mb-1">
+                    終了時間
+                  </label>
+                  <input
+                    id={`end-time-${text}`}
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="w-full p-2 bg-white rounded-lg border-2 border-black"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleAddToTasks}
+                  disabled={!startTime || !endTime}
+                  className={`px-3 py-1 rounded-lg border border-black ${
+                    !startTime || !endTime ? "bg-gray-400" : "bg-green-500 text-white"
+                  }`}
+                >
+                  うんこ解析
+                </button>
+                <button
+                  onClick={handleAddWithoutTime}
+                  className="bg-blue-500 text-white px-3 py-1 rounded-lg border border-black"
+                >
+                  時間なしで追加
+                </button>
+                <button onClick={handleCancel} className="bg-gray-300 px-3 py-1 rounded-lg border border-black">
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleAddToTasks}
+              className="bg-green-500 text-white px-3 py-1 rounded-lg border border-black"
+              aria-label="タスクに追加"
+            >
+              予定に追加
+            </button>
+          )}
+        </>
       )}
     </div>
   )
