@@ -5,6 +5,7 @@ import type React from "react"
 import { Header } from "@/components/header"
 import { TodoProvider, useTodo } from "@/context/todo-context"
 import { useState } from "react"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 function FavoriteTaskItem({ text }: { text: string }) {
   const { removeFromFavorites, addFavoriteToTasks } = useTodo()
@@ -36,10 +37,10 @@ function AddFavoriteForm() {
   const [text, setText] = useState("")
   const { addToFavorites } = useTodo()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (text.trim()) {
-      addToFavorites(text.trim())
+      await addToFavorites(text.trim())
       setText("")
     }
   }
@@ -63,7 +64,7 @@ function AddFavoriteForm() {
 }
 
 function FavoritesPage() {
-  const { favoriteTasks } = useTodo()
+  const { favoriteTasks, isLoading } = useTodo()
 
   return (
     <div className="max-w-md mx-auto p-4">
@@ -74,10 +75,14 @@ function FavoritesPage() {
 
       <AddFavoriteForm />
 
-      {favoriteTasks.length === 0 ? (
-        <div className="text-center p-4 bg-[var(--card)] rounded-lg border-2 border-black">
-          <p>よく使うタスクがまだありません。</p>
-          <p>上のフォームから追加してください。</p>
+      {isLoading ? (
+        <div className="flex justify-center my-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--header)]"></div>
+        </div>
+      ) : favoriteTasks.length === 0 ? (
+        <div className="text-center p-8 bg-[var(--card)] rounded-lg border-2 border-black my-4">
+          <p className="text-lg">よく使うタスクがありません</p>
+          <p>上のフォームからタスクを追加してください</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -92,8 +97,10 @@ function FavoritesPage() {
 
 export default function FavoritesPageWrapper() {
   return (
-    <TodoProvider>
-      <FavoritesPage />
-    </TodoProvider>
+    <ProtectedRoute>
+      <TodoProvider>
+        <FavoritesPage />
+      </TodoProvider>
+    </ProtectedRoute>
   )
 }

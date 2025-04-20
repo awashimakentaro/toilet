@@ -1,11 +1,11 @@
 import type React from "react"
 import "./globals.css"
 import type { Metadata } from "next"
+import { AuthProvider } from "@/context/auth-context"
 
 export const metadata: Metadata = {
   title: "うんこフラッシュTODOアプリ",
   description: "タスクを完了してトイレに流そう！",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -15,7 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   )
 }

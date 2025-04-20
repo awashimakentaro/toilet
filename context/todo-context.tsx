@@ -2,92 +2,192 @@
 
 import { createContext, useState, useContext, type ReactNode, useEffect } from "react"
 import type { Task } from "@/lib/types"
+import { getSupabaseClient } from "@/lib/supabase"
+import { useAuth } from "./auth-context"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import type { Database } from "@/lib/database.types"
 
 interface TodoContextType {
   tasks: Task[]
   favoriteTasks: string[]
-  addTask: (text: string) => void
-  toggleTask: (id: string) => void
-  deleteTask: (id: string) => void
-  flushTask: (id: string) => void
-  addToFavorites: (text: string) => void
-  removeFromFavorites: (text: string) => void
-  addFavoriteToTasks: (text: string) => void
+  isLoading: boolean
+  addTask: (text: string) => Promise<void>
+  toggleTask: (id: string) => Promise<void>
+  deleteTask: (id: string) => Promise<void>
+  flushTask: (id: string) => Promise<void>
+  addToFavorites: (text: string) => Promise<void>
+  removeFromFavorites: (text: string) => Promise<void>
+  addFavoriteToTasks: (text: string) => Promise<void>
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
 
 export function TodoProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: "1", text: "買い物", completed: false },
-    { id: "2", text: "レポートを書く", completed: false },
-    { id: "3", text: "ジムに行く", completed: false },
-  ])
-
+  const [tasks, setTasks] = useState<Task[]>([])
   const [favoriteTasks, setFavoriteTasks] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth()
+  const [supabase, setSupabase] = useState<SupabaseClient<Database> | null>(null)
 
-  // ローカルストレージからデータを読み込む
+  // クライアントサイドでのみSupabaseを初期化
   useEffect(() => {
-    const storedTasks = localStorage.getItem("tasks")
-    const storedFavorites = localStorage.getItem("favoriteTasks")
-
-    if (storedTasks) {
-      setTasks(JSON.parse(storedTasks))
-    }
-
-    if (storedFavorites) {
-      setFavoriteTasks(JSON.parse(storedFavorites))
-    }
+    setSupabase(getSupabaseClient())
   }, [])
 
-  // データが変更されたらローカルストレージに保存
+  // ユーザーのタスクを取得
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks))
-  }, [tasks])
-
-  useEffect(() => {
-    localStorage.setItem("favoriteTasks", JSON.stringify(favoriteTasks))
-  }, [favoriteTasks])
-
-  const addTask = (text: string) => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      text,
-      completed: false,
+    if (!supabase || !user) {
+      setTasks([])
+      setFavoriteTasks([])
+      setIsLoading(false)
+      return
     }
-    setTasks([...tasks, newTask])
+
+    const fetchTasks = async () => {
+      setIsLoading(true)
+      try {
+        // タスクを取得
+        const { data: tasksData, error: tasksError } = await supabase
+          .from("tasks")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+
+        if (tasksError) throw tasksError
+
+        // お気に入りタスクを取得
+        const { data: favoritesData, error: favoritesError } = await supabase
+          .from("favorite_tasks")
+          .select("text")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+
+        if (favoritesError) throw favoritesError
+
+        setTasks(
+          tasksData.map((task) => ({
+            id: task.id,
+            text: task.text,
+            completed: task.completed,
+          })),
+        )
+
+        setFavoriteTasks(favoritesData.map((favorite) => favorite.text))
+      } catch (error) {
+        console.error("データ取得エラー:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTasks()
+  }, [user, supabase])
+
+  // タスクを追加
+  const addTask = async (text: string) => {
+    if (!supabase || !user) return
+
+    try {
+      const { data, error } = await supabase
+        .from("tasks")
+        .insert([{ user_id: user.id, text, completed: false }])
+        .select()
+        .single()
+
+      if (error) throw error
+
+      setTasks([
+        {
+          id: data.id,
+          text: data.text,
+          completed: data.completed,
+        },
+        ...tasks,
+      ])
+    } catch (error) {
+      console.error("タスク追加エラー:", error)
+    }
   }
 
-  const toggleTask = (id: string) => {
-    setTasks(tasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task)))
+  // タスクの完了状態を切り替え
+  const toggleTask = async (id: string) => {
+    if (!supabase || !user) return
+
+    const taskToUpdate = tasks.find((task) => task.id === id)
+    if (!taskToUpdate) return
+
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ completed: !taskToUpdate.completed })
+        .eq("id", id)
+        .eq("user_id", user.id)
+
+      if (error) throw error
+
+      setTasks(tasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task)))
+    } catch (error) {
+      console.error("タスク更新エラー:", error)
+    }
   }
 
-  const deleteTask = (id: string) => {
-    setTasks(tasks.filter((task) => task.id !== id))
+  // タスクを削除
+  const deleteTask = async (id: string) => {
+    if (!supabase || !user) return
+
+    try {
+      const { error } = await supabase.from("tasks").delete().eq("id", id).eq("user_id", user.id)
+
+      if (error) throw error
+
+      setTasks(tasks.filter((task) => task.id !== id))
+    } catch (error) {
+      console.error("タスク削除エラー:", error)
+    }
   }
 
-  const flushTask = (id: string) => {
-    // タスクを削除する前に、アニメーションのために少し待つ
+  // タスクを流す（アニメーション後に削除）
+  const flushTask = async (id: string) => {
     setTimeout(() => {
       deleteTask(id)
     }, 1000)
   }
 
   // お気に入りタスクを追加
-  const addToFavorites = (text: string) => {
-    if (!favoriteTasks.includes(text)) {
+  const addToFavorites = async (text: string) => {
+    if (!supabase || !user) return
+
+    if (favoriteTasks.includes(text)) return
+
+    try {
+      const { error } = await supabase.from("favorite_tasks").insert([{ user_id: user.id, text }])
+
+      if (error) throw error
+
       setFavoriteTasks([...favoriteTasks, text])
+    } catch (error) {
+      console.error("お気に入り追加エラー:", error)
     }
   }
 
   // お気に入りタスクを削除
-  const removeFromFavorites = (text: string) => {
-    setFavoriteTasks(favoriteTasks.filter((task) => task !== text))
+  const removeFromFavorites = async (text: string) => {
+    if (!supabase || !user) return
+
+    try {
+      const { error } = await supabase.from("favorite_tasks").delete().eq("user_id", user.id).eq("text", text)
+
+      if (error) throw error
+
+      setFavoriteTasks(favoriteTasks.filter((task) => task !== text))
+    } catch (error) {
+      console.error("お気に入り削除エラー:", error)
+    }
   }
 
   // お気に入りタスクをタスクリストに追加
-  const addFavoriteToTasks = (text: string) => {
-    addTask(text)
+  const addFavoriteToTasks = async (text: string) => {
+    await addTask(text)
   }
 
   return (
@@ -95,6 +195,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       value={{
         tasks,
         favoriteTasks,
+        isLoading,
         addTask,
         toggleTask,
         deleteTask,

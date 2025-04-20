@@ -7,9 +7,10 @@ import { ToiletDropArea } from "@/components/toilet-drop-area"
 import { TodoProvider, useTodo } from "@/context/todo-context"
 import { useState } from "react"
 import { Header } from "@/components/header"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 function TodoApp() {
-  const { tasks, flushTask } = useTodo()
+  const { tasks, flushTask, isLoading } = useTodo()
   const [isAnimating, setIsAnimating] = useState(false)
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -47,11 +48,22 @@ function TodoApp() {
 
         <AddTaskForm />
 
-        <div className="space-y-2">
-          {tasks.map((task) => (
-            <TaskItem key={task.id} task={task} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center my-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--header)]"></div>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="text-center p-8 bg-[var(--card)] rounded-lg border-2 border-black my-4">
+            <p className="text-lg">タスクがありません</p>
+            <p>上のフォームからタスクを追加してください</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {tasks.map((task) => (
+              <TaskItem key={task.id} task={task} />
+            ))}
+          </div>
+        )}
 
         <ToiletDropArea isAnimating={isAnimating} onAnimationComplete={handleAnimationComplete} />
       </div>
@@ -61,8 +73,10 @@ function TodoApp() {
 
 export default function Home() {
   return (
-    <TodoProvider>
-      <TodoApp />
-    </TodoProvider>
+    <ProtectedRoute>
+      <TodoProvider>
+        <TodoApp />
+      </TodoProvider>
+    </ProtectedRoute>
   )
 }
