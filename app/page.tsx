@@ -8,9 +8,10 @@ import { TodoProvider, useTodo } from "@/context/todo-context"
 import { useState, useMemo } from "react"
 import { Header } from "@/components/header"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { ReminderNotification } from "@/components/reminder-notification" // 追加
 
 function TodoApp() {
-  const { tasks, flushTask, isLoading } = useTodo()
+  const { tasks, flushTask, isLoading, reminderTasks, dismissReminder } = useTodo() // reminderTasksとdismissReminderを追加
   const [isAnimating, setIsAnimating] = useState(false)
 
   // タスクを終了時刻でソート
@@ -89,6 +90,11 @@ function TodoApp() {
         )}
 
         <ToiletDropArea isAnimating={isAnimating} onAnimationComplete={handleAnimationComplete} />
+
+        {/* リマインダー通知を表示 */}
+        {reminderTasks.map((task) => (
+          <ReminderNotification key={task.id} task={task} onClose={() => dismissReminder(task.id)} />
+        ))}
       </div>
     </DndContext>
   )

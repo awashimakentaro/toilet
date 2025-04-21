@@ -11,7 +11,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [isMounted, setIsMounted] = useState(false)
 
-  // クライアントサイドでのみ実行
+  // クライアントサ���ドでのみ実行
   useEffect(() => {
     setIsMounted(true)
   }, [])

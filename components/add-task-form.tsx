@@ -42,15 +42,43 @@ export function AddTaskForm() {
     }
   }
 
+  // テスト用の通知タスクを追加する関数
+  const addTestReminderTask = async () => {
+    const now = new Date()
+
+    // 現在時刻から2分後を終了時刻に設定
+    const endMinutes = now.getMinutes() + 2
+    now.setMinutes(endMinutes)
+    const testEndTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+
+    // 開始時刻は終了時刻の30分前（実際には使用されないがフォーマット上必要）
+    const startMinutes = endMinutes - 30 < 0 ? endMinutes - 30 + 60 : endMinutes - 30
+    const startHours = endMinutes - 30 < 0 ? now.getHours() - 1 : now.getHours()
+    const testStartTime = `${String(startHours).padStart(2, "0")}:${String(startMinutes).padStart(2, "0")}`
+
+    await addTask("テスト通知タスク（2分後に終了）", testStartTime, testEndTime)
+    alert(`テスト通知タスクを追加しました。終了時刻: ${testEndTime}（約1分30秒後に通知が表示されます）`)
+
+    playPoopSound()
+  }
+
   return (
     <div className="mb-6">
       {!isFormOpen ? (
-        <button
-          onClick={() => setIsFormOpen(true)}
-          className="w-full py-3 px-4 bg-[var(--card)] rounded-lg border-4 border-black text-xl font-bold hover:bg-opacity-90 transition-colors"
-        >
-          予定を追加
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="w-full py-3 px-4 bg-[var(--card)] rounded-lg border-4 border-black text-xl font-bold hover:bg-opacity-90 transition-colors"
+          >
+            予定を追加
+          </button>
+          <button
+            onClick={addTestReminderTask}
+            className="w-full py-2 px-4 bg-yellow-100 text-yellow-800 rounded-lg border-2 border-yellow-300 hover:bg-yellow-200 transition-colors text-sm"
+          >
+            テスト通知を追加（2分後に終了するタスク）
+          </button>
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className="bg-[var(--card)] p-4 rounded-lg border-4 border-black">
           <div className="mb-4">
