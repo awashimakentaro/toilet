@@ -51,24 +51,40 @@ export function ReminderNotification({ task, onClose }: ReminderNotificationProp
 
   return (
     <div
-      className={`fixed bottom-4 right-4 max-w-sm bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-lg shadow-lg transition-all duration-500 z-50 ${
+      className={`fixed bottom-4 right-4 max-w-sm glass-effect p-4 rounded-xl shadow-lg transition-all duration-500 z-50 border border-yellow-200 ${
         isVisible ? "opacity-100 transform translate-y-0" : "opacity-0 transform translate-y-10"
       } ${isShaking ? "animate-shake" : ""}`}
-      style={{ boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)" }}
     >
       <div className="flex">
         <div className="flex-shrink-0">
-          <span className="text-2xl animate-pulse">🌸</span>
+          <span className="text-2xl animate-pulse-slow">🚽</span>
         </div>
         <div className="ml-3">
-          <p className="text-sm font-bold text-yellow-800">
-            「{task.text}」をまだ排出できていません。早くお花を摘んでください🌸
+          <p className="text-sm font-bold text-gray-800">「{task.text}」をまだ排出できていません</p>
+          <p className="text-xs text-gray-600 mt-1">
+            <span className="inline-flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-3 w-3 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              終了時刻: {task.endTime?.substring(0, 5)}
+            </span>
           </p>
-          <p className="text-xs text-yellow-700 mt-1">終了時刻: {task.endTime?.substring(0, 5)}</p>
+          <p className="text-xs text-[var(--header)] mt-2 font-medium">早くお花を摘んでください 🌸</p>
         </div>
         <button
           onClick={handleClose}
-          className="ml-auto flex-shrink-0 text-yellow-500 hover:text-yellow-700 focus:outline-none"
+          className="ml-auto flex-shrink-0 text-gray-400 hover:text-gray-600 focus:outline-none"
           aria-label="通知を閉じる"
         >
           <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">

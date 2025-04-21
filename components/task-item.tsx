@@ -1,24 +1,28 @@
 "use client"
 
 import type React from "react"
-
 import type { Task } from "@/lib/types"
 import { useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import { useTodo } from "@/context/todo-context"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { generatePoopAnalysis } from "@/lib/poop-analysis"
+import { fadeInFromBottom } from "@/lib/gsap-utils"
 
 interface TaskItemProps {
   task: Task
+  index: number
 }
 
-export function TaskItem({ task }: TaskItemProps) {
+export function TaskItem({ task, index }: TaskItemProps) {
   const { addToFavorites } = useTodo()
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<ReturnType<typeof generatePoopAnalysis> | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // アニメーション用のref
+  const taskItemRef = useRef<HTMLDivElement>(null)
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
@@ -26,6 +30,12 @@ export function TaskItem({ task }: TaskItemProps) {
       task,
     },
   })
+
+  useEffect(() => {
+    if (taskItemRef.current) {
+      fadeInFromBottom(taskItemRef.current, 0.1 + index * 0.05)
+    }
+  }, [index])
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -44,8 +54,6 @@ export function TaskItem({ task }: TaskItemProps) {
     e.stopPropagation()
     e.preventDefault()
 
-    console.log("うんこ解析ボタンがクリックされました") // デバッグ用
-
     // 既に解析結果がある場合は表示/非表示を切り替え
     if (analysisResult) {
       setShowAnalysis(!showAnalysis)
@@ -59,7 +67,6 @@ export function TaskItem({ task }: TaskItemProps) {
     setTimeout(() => {
       try {
         const result = generatePoopAnalysis(task.text, task.startTime, task.endTime)
-        console.log("解析結果が生成されました:", result) // デバッグ用
         setAnalysisResult(result)
         setShowAnalysis(true)
       } catch (error) {
@@ -86,29 +93,60 @@ export function TaskItem({ task }: TaskItemProps) {
     task.startTime && task.endTime ? `${formatTime(task.startTime)} 〜 ${formatTime(task.endTime)}` : ""
 
   return (
-    <div className="relative mb-3">
+    <div ref={taskItemRef} className="relative mb-5 opacity-0">
       {/* ドラッグ可能な部分 */}
       <div
         ref={setNodeRef}
         style={style}
         {...attributes}
         {...listeners}
-        className={`p-4 bg-[var(--card)] rounded-lg border-2 border-black flex flex-col ${
-          transform ? "z-10" : ""
-        } cursor-grab`}
+        className={`modern-card p-5 flex flex-col ${transform ? "z-10" : ""} cursor-grab`}
       >
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xl font-bold">{task.text}</span>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xl font-bold text-gray-800">{task.text}</h3>
+
+          {/* ドラッグハンドル */}
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 cursor-grab">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            </svg>
+          </div>
         </div>
 
-        <div className="flex justify-between items-center">
-          {timeDisplay && <div className="text-sm bg-blue-100 p-1 px-2 rounded-md inline-block">🕒 {timeDisplay}</div>}
-        </div>
+        {timeDisplay && (
+          <div className="mb-3">
+            <span className="modern-badge badge-blue flex items-center w-fit">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              {timeDisplay}
+            </span>
+          </div>
+        )}
 
         {/* ドラッグヒント */}
         {!showAnalysis && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 rounded-lg pointer-events-none opacity-0 hover:opacity-100 transition-opacity">
-            <p className="text-sm text-white bg-black bg-opacity-70 px-2 py-1 rounded">ドラッグしてトイレに流す</p>
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 rounded-lg pointer-events-none hover:bg-opacity-10 transition-all">
+            <p className="text-sm text-white bg-black bg-opacity-70 px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+              ドラッグしてトイレに流す
+            </p>
           </div>
         )}
       </div>
@@ -120,10 +158,12 @@ export function TaskItem({ task }: TaskItemProps) {
           {/* お気に入りボタン */}
           <button
             onClick={handleAddToFavorites}
-            className="bg-yellow-100 hover:bg-yellow-200 text-yellow-600 p-2 rounded-md border border-yellow-300 flex items-center justify-center"
+            className="flex items-center justify-center px-3 py-1.5 rounded-lg bg-yellow-50 text-yellow-600 border border-yellow-200 hover:bg-yellow-100 transition-colors"
             aria-label="お気に入りに追加"
           >
-            <span className="mr-1">⭐</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
             <span className="text-sm">お気に入り</span>
           </button>
 
@@ -132,8 +172,8 @@ export function TaskItem({ task }: TaskItemProps) {
             ref={buttonRef}
             onClick={handleAnalysisClick}
             className={`flex-1 text-sm ${
-              isAnalyzing ? "bg-gray-500" : "bg-[var(--header)]"
-            } text-white p-2 rounded-md hover:opacity-90 active:scale-95 transition-all`}
+              isAnalyzing ? "bg-gray-500" : "bg-gradient-to-r from-[var(--header)] to-pink-400"
+            } text-white p-2 rounded-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center shadow-md`}
             disabled={isAnalyzing}
           >
             {isAnalyzing ? (
@@ -153,22 +193,68 @@ export function TaskItem({ task }: TaskItemProps) {
                 </svg>
                 解析中...
               </span>
-            ) : showAnalysis ? (
-              "解析を隠す"
             ) : (
-              "うんこ解析を見る"
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+                {showAnalysis ? "解析を隠す" : "うんこ解析を見る"}
+              </>
             )}
           </button>
         </div>
 
         {/* うんこ解析結果 */}
         {showAnalysis && analysisResult && (
-          <div className="mt-2 p-3 bg-[var(--card)] rounded-lg border-2 border-black animate-fadeIn">
-            <h4 className="text-md font-bold mb-2 flex items-center">
+          <div className="mt-3 p-4 bg-white rounded-xl border border-gray-200 shadow-md animate-fadeIn">
+            <h4 className="text-lg font-bold mb-3 flex items-center text-gray-800">
               {analysisResult.emoji} {analysisResult.title}
             </h4>
-            <div className="bg-white p-3 rounded-md border border-gray-300">
-              <p className="text-sm whitespace-pre-line">{analysisResult.description}</p>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+              <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{analysisResult.description}</p>
+            </div>
+
+            {/* インパクトレベルの視覚化 */}
+            <div className="mt-3">
+              <div className="flex items-center">
+                <span className="text-sm text-gray-600 mr-2">インパクト:</span>
+                <div className="flex space-x-1">
+                  {[1, 2, 3, 4, 5].map((level) => (
+                    <div
+                      key={level}
+                      className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                        level <= analysisResult.impactLevel ? "bg-[var(--header)]" : "bg-gray-200"
+                      }`}
+                    >
+                      {level <= analysisResult.impactLevel && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3 w-3 text-white"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}

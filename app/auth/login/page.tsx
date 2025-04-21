@@ -3,14 +3,17 @@
 import { LoginForm } from "@/components/auth/login-form"
 import Image from "next/image"
 import { useEffect, useRef } from "react"
-import { slideInFromLeft, slideInFromRight, fadeInFromBottom, staggerElements, scaleIn } from "@/lib/gsap-utils"
+import { slideInFromLeft, slideInFromRight, fadeInFromBottom, scaleIn } from "@/lib/gsap-utils"
 
 export default function LoginPage() {
   // アニメーション用のref
   const titleRef = useRef<HTMLHeadingElement>(null)
   const subtitleRef = useRef<HTMLParagraphElement>(null)
   const featureBoxRef = useRef<HTMLDivElement>(null)
-  const featureItemsRef = useRef<HTMLUListElement>(null)
+  const featureItem1Ref = useRef<HTMLLIElement>(null)
+  const featureItem2Ref = useRef<HTMLLIElement>(null)
+  const featureItem3Ref = useRef<HTMLLIElement>(null)
+  const featureItem4Ref = useRef<HTMLLIElement>(null)
   const logoRef = useRef<HTMLDivElement>(null)
   const formContainerRef = useRef<HTMLDivElement>(null)
   const mobileTitleRef = useRef<HTMLHeadingElement>(null)
@@ -20,35 +23,23 @@ export default function LoginPage() {
   // コンポーネントがマウントされた後にアニメーションを実行
   useEffect(() => {
     // デスクトップ版のアニメーション
-    if (titleRef.current) {
-      slideInFromLeft(titleRef.current, 0.2)
-    }
-    if (subtitleRef.current) {
-      slideInFromRight(subtitleRef.current, 0.4)
-    }
-    if (featureBoxRef.current) {
-      fadeInFromBottom(featureBoxRef.current, 0.6)
-    }
-    if (featureItemsRef.current) {
-      staggerElements(featureItemsRef.current.children, 0.1, 0.8)
-    }
-    if (logoRef.current) {
-      scaleIn(logoRef.current, 0.1)
-    }
-    if (formContainerRef.current) {
-      fadeInFromBottom(formContainerRef.current, 0.3)
-    }
+    slideInFromLeft(titleRef.current, 0.2)
+    slideInFromRight(subtitleRef.current, 0.4)
+    fadeInFromBottom(featureBoxRef.current, 0.6)
+
+    // 個別の要素にアニメーションを適用
+    fadeInFromBottom(featureItem1Ref.current, 0.8)
+    fadeInFromBottom(featureItem2Ref.current, 0.9)
+    fadeInFromBottom(featureItem3Ref.current, 1.0)
+    fadeInFromBottom(featureItem4Ref.current, 1.1)
+
+    scaleIn(logoRef.current, 0.1)
+    fadeInFromBottom(formContainerRef.current, 0.3)
 
     // モバイル版のアニメーション
-    if (mobileTitleRef.current) {
-      slideInFromLeft(mobileTitleRef.current, 0.2)
-    }
-    if (mobileSubtitleRef.current) {
-      slideInFromRight(mobileSubtitleRef.current, 0.3)
-    }
-    if (mobileLogoRef.current) {
-      scaleIn(mobileLogoRef.current, 0.1)
-    }
+    slideInFromLeft(mobileTitleRef.current, 0.2)
+    slideInFromRight(mobileSubtitleRef.current, 0.3)
+    scaleIn(mobileLogoRef.current, 0.1)
   }, [])
 
   return (
@@ -71,20 +62,20 @@ export default function LoginPage() {
           </p>
           <div ref={featureBoxRef} className="bg-white/20 backdrop-blur-sm p-6 rounded-xl opacity-0">
             <h2 className="text-xl font-semibold mb-4">アプリの特徴</h2>
-            <ul ref={featureItemsRef} className="space-y-2">
-              <li className="flex items-center opacity-0">
+            <ul className="space-y-2">
+              <li ref={featureItem1Ref} className="flex items-center opacity-0">
                 <span className="mr-2">💩</span>
                 <span>完了したタスクをトイレに流して気分爽快</span>
               </li>
-              <li className="flex items-center opacity-0">
+              <li ref={featureItem2Ref} className="flex items-center opacity-0">
                 <span className="mr-2">⏰</span>
                 <span>時間設定とリマインダー機能</span>
               </li>
-              <li className="flex items-center opacity-0">
+              <li ref={featureItem3Ref} className="flex items-center opacity-0">
                 <span className="mr-2">⭐</span>
                 <span>よく使うタスクをお気に入り登録</span>
               </li>
-              <li className="flex items-center opacity-0">
+              <li ref={featureItem4Ref} className="flex items-center opacity-0">
                 <span className="mr-2">📊</span>
                 <span>ユニークなうんこ解析機能</span>
               </li>

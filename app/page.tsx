@@ -5,14 +5,28 @@ import { AddTaskForm } from "@/components/add-task-form"
 import { TaskItem } from "@/components/task-item"
 import { ToiletDropArea } from "@/components/toilet-drop-area"
 import { TodoProvider, useTodo } from "@/context/todo-context"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { Header } from "@/components/header"
 import { ProtectedRoute } from "@/components/auth/protected-route"
-import { ReminderNotification } from "@/components/reminder-notification" // 追加
+import { ReminderNotification } from "@/components/reminder-notification"
+import { fadeInFromBottom } from "@/lib/gsap-utils"
 
 function TodoApp() {
-  const { tasks, flushTask, isLoading, reminderTasks, dismissReminder } = useTodo() // reminderTasksとdismissReminderを追加
+  const { tasks, flushTask, isLoading, reminderTasks, dismissReminder } = useTodo()
   const [isAnimating, setIsAnimating] = useState(false)
+
+  // アニメーション用のref
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const subtitleRef = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    if (titleRef.current) {
+      fadeInFromBottom(titleRef.current, 0.1)
+    }
+    if (subtitleRef.current) {
+      fadeInFromBottom(subtitleRef.current, 0.2)
+    }
+  }, [])
 
   // タスクを終了時刻でソート
   const sortedTasks = useMemo(() => {
@@ -65,26 +79,37 @@ function TodoApp() {
 
   return (
     <DndContext onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>
-      <div className="max-w-md mx-auto p-4">
+      <div className="max-w-2xl mx-auto p-4">
         <Header />
 
-        <h2 className="text-2xl font-bold mb-4">今日の予定表</h2>
+        <div className="mb-8">
+          <h2 ref={titleRef} className="text-3xl font-bold mb-2 text-gray-800 opacity-0">
+            今日の予定表
+          </h2>
+          <p ref={subtitleRef} className="text-gray-600 opacity-0">
+            完了した予定はトイレに流してスッキリしましょう！
+          </p>
+        </div>
 
         <AddTaskForm />
 
         {isLoading ? (
-          <div className="flex justify-center my-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--header)]"></div>
+          <div className="flex justify-center my-12">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-t-4 border-[var(--header)] animate-spin"></div>
+            </div>
           </div>
         ) : sortedTasks.length === 0 ? (
-          <div className="text-center p-8 bg-[var(--card)] rounded-lg border-2 border-black my-4">
-            <p className="text-lg">予定がありません</p>
-            <p>上のフォームから予定を追加してください</p>
+          <div className="text-center p-12 bg-white rounded-xl border border-gray-200 shadow-md my-8">
+            <div className="text-6xl mb-4">🚽</div>
+            <h3 className="text-2xl font-bold text-gray-700 mb-2">予定がありません</h3>
+            <p className="text-gray-500">上のフォームから予定を追加してください</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {sortedTasks.map((task) => (
-              <TaskItem key={task.id} task={task} />
+          <div className="space-y-0">
+            {sortedTasks.map((task, index) => (
+              <TaskItem key={task.id} task={task} index={index} />
             ))}
           </div>
         )}

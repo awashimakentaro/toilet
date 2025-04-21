@@ -6,7 +6,7 @@ import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { staggerElements, scaleIn } from "@/lib/gsap-utils"
+import { scaleIn, fadeInFromBottom } from "@/lib/gsap-utils"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -20,7 +20,27 @@ export function LoginForm() {
   const formLogoRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const formFieldsRef = useRef<HTMLFormElement>(null)
+  const emailFieldRef = useRef<HTMLDivElement>(null)
+  const passwordFieldRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // fadeInFromBottomアニメーション
+  // const fadeInFromBottom = (element: HTMLElement, delay: number) => {
+  //   gsap.fromTo(
+  //     element,
+  //     {
+  //       opacity: 0,
+  //       y: 50,
+  //     },
+  //     {
+  //       opacity: 1,
+  //       y: 0,
+  //       duration: 0.8,
+  //       delay: delay,
+  //       ease: "power3.out",
+  //     }
+  //   );
+  // };
 
   useEffect(() => {
     if (formLogoRef.current) {
@@ -29,11 +49,16 @@ export function LoginForm() {
     if (titleRef.current) {
       scaleIn(titleRef.current, 0.4)
     }
-    if (formFieldsRef.current) {
-      staggerElements(formFieldsRef.current.children, 0.15, 0.6)
+
+    // 個別の要素に対してアニメーションを適用
+    if (emailFieldRef.current) {
+      fadeInFromBottom(emailFieldRef.current, 0.6)
+    }
+    if (passwordFieldRef.current) {
+      fadeInFromBottom(passwordFieldRef.current, 0.8)
     }
     if (buttonRef.current) {
-      scaleIn(buttonRef.current, 1.2)
+      scaleIn(buttonRef.current, 1.0)
     }
   }, [])
 
@@ -94,7 +119,7 @@ export function LoginForm() {
         )}
 
         <form ref={formFieldsRef} onSubmit={handleSubmit} className="space-y-6">
-          <div className="opacity-0">
+          <div ref={emailFieldRef} className="opacity-0">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               メールアドレス
             </label>
@@ -122,7 +147,7 @@ export function LoginForm() {
             </div>
           </div>
 
-          <div className="opacity-0">
+          <div ref={passwordFieldRef} className="opacity-0">
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 パスワード

@@ -3,16 +3,27 @@
 @tailwind utilities;
 
 :root {
-  --background: #7dd3e7;
-  --foreground: #000000;
-  --header: #f08080;
-  --card: #f5f5dc;
+  --background: #f8f9fa;
+  --foreground: #1a1a1a;
+  --header: #ff6b6b;
+  --header-gradient: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+  --card: #ffffff;
+  --accent: #4dabf7;
+  --accent-gradient: linear-gradient(135deg, #4dabf7 0%, #3a8ee6 100%);
+  --success: #51cf66;
+  --warning: #fcc419;
+  --danger: #ff6b6b;
+  --border-radius: 12px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --transition: all 0.3s ease;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: sans-serif;
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
 }
 
 /* トイレの水が渦を巻くアニメーション */
@@ -122,6 +133,40 @@ body {
   }
 }
 
+/* 新しいアニメーション */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  25% {
+    transform: translateY(-5px) rotate(-2deg);
+  }
+  75% {
+    transform: translateY(5px) rotate(2deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s ease-in-out infinite;
+}
+
 .animate-bounce-slow {
   animation: bounce-slow 2s ease-in-out infinite;
 }
@@ -145,7 +190,7 @@ body {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: radial-gradient(circle, #7dd3e7 0%, #5bbcd2 100%);
+  background: radial-gradient(circle, #4dabf7 0%, #3a8ee6 100%);
   animation: swirl 2s forwards;
 }
 
@@ -160,7 +205,7 @@ body {
 
 .splash {
   position: absolute;
-  background-color: #7dd3e7;
+  background-color: #4dabf7;
   border-radius: 50%;
   opacity: 0.7;
   animation: splash 0.5s forwards;
@@ -178,4 +223,164 @@ body {
     transform: scale(1.5);
     opacity: 0;
   }
+}
+
+/* モダンなカードスタイル */
+.modern-card {
+  background: var(--card);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+.modern-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* ガラスモーフィズム効果 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* グラデーションボタン */
+.gradient-button {
+  background: var(--header-gradient);
+  color: white;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: var(--transition);
+  border: none;
+  box-shadow: 0 4px 6px rgba(255, 107, 107, 0.2);
+}
+
+.gradient-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(255, 107, 107, 0.3);
+}
+
+.gradient-button:active {
+  transform: translateY(0);
+}
+
+/* アクセントグラデーションボタン */
+.accent-gradient-button {
+  background: var(--accent-gradient);
+  color: white;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: var(--transition);
+  border: none;
+  box-shadow: 0 4px 6px rgba(74, 171, 247, 0.2);
+}
+
+.accent-gradient-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(74, 171, 247, 0.3);
+}
+
+.accent-gradient-button:active {
+  transform: translateY(0);
+}
+
+/* モダンなフォーム入力 */
+.modern-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+  transition: var(--transition);
+}
+
+.modern-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(74, 171, 247, 0.2);
+}
+
+/* モダンなラベル */
+.modern-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+/* モダンなバッジ */
+.modern-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-blue {
+  background-color: rgba(74, 171, 247, 0.15);
+  color: #3a8ee6;
+}
+
+.badge-green {
+  background-color: rgba(81, 207, 102, 0.15);
+  color: #40a057;
+}
+
+.badge-yellow {
+  background-color: rgba(252, 196, 25, 0.15);
+  color: #e5b012;
+}
+
+.badge-red {
+  background-color: rgba(255, 107, 107, 0.15);
+  color: #e55757;
+}
+
+/* モダンなアイコンボタン */
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  color: #555;
+  transition: var(--transition);
+}
+
+.icon-button:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+/* モダンなセパレーター */
+.modern-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e0e0e0, transparent);
+  margin: 1.5rem 0;
+}
+
+/* モダンなスクロールバー */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

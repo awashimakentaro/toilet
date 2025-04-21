@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
-import { staggerElements, scaleIn } from "@/lib/gsap-utils"
+import { scaleIn, fadeInFromBottom } from "@/lib/gsap-utils"
 
 export function SignupForm() {
   const [email, setEmail] = useState("")
@@ -18,15 +18,25 @@ export function SignupForm() {
 
   // アニメーション用のref
   const titleRef = useRef<HTMLHeadingElement>(null)
-  const formFieldsRef = useRef<HTMLFormElement>(null)
+  const emailFieldRef = useRef<HTMLDivElement>(null)
+  const passwordFieldRef = useRef<HTMLDivElement>(null)
+  const confirmPasswordFieldRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (titleRef.current) {
       scaleIn(titleRef.current, 0.2)
     }
-    if (formFieldsRef.current) {
-      staggerElements(formFieldsRef.current.children, 0.15, 0.4)
+
+    // 個別の要素に対してアニメーションを適用
+    if (emailFieldRef.current) {
+      fadeInFromBottom(emailFieldRef.current, 0.4)
+    }
+    if (passwordFieldRef.current) {
+      fadeInFromBottom(passwordFieldRef.current, 0.6)
+    }
+    if (confirmPasswordFieldRef.current) {
+      fadeInFromBottom(confirmPasswordFieldRef.current, 0.8)
     }
     if (buttonRef.current) {
       scaleIn(buttonRef.current, 1.0)
@@ -108,8 +118,8 @@ export function SignupForm() {
           </div>
         )}
 
-        <form ref={formFieldsRef} onSubmit={handleSubmit} className="space-y-6">
-          <div className="opacity-0">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div ref={emailFieldRef} className="opacity-0">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               メールアドレス
             </label>
@@ -137,7 +147,7 @@ export function SignupForm() {
             </div>
           </div>
 
-          <div className="opacity-0">
+          <div ref={passwordFieldRef} className="opacity-0">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               パスワード
             </label>
@@ -169,7 +179,7 @@ export function SignupForm() {
             </div>
           </div>
 
-          <div className="opacity-0">
+          <div ref={confirmPasswordFieldRef} className="opacity-0">
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
               パスワード（確認）
             </label>

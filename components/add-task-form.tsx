@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useTodo } from "@/context/todo-context"
+import { fadeInFromBottom } from "@/lib/gsap-utils"
 
 export function AddTaskForm() {
   const [text, setText] = useState("")
@@ -12,6 +12,19 @@ export function AddTaskForm() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const { addTask } = useTodo()
   const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // アニメーション用のref
+  const formContainerRef = useRef<HTMLDivElement>(null)
+  const addButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (formContainerRef.current) {
+      fadeInFromBottom(formContainerRef.current, 0.2)
+    }
+    if (addButtonRef.current) {
+      fadeInFromBottom(addButtonRef.current, 0.3)
+    }
+  }, [])
 
   // コンポーネントがマウントされたときに音声要素を作成
   if (typeof window !== "undefined" && !audioRef.current) {
@@ -43,76 +56,112 @@ export function AddTaskForm() {
   }
 
   return (
-    <div className="mb-6">
+    <div ref={formContainerRef} className="mb-8 opacity-0">
       {!isFormOpen ? (
         <button
+          ref={addButtonRef}
           onClick={() => setIsFormOpen(true)}
-          className="w-full py-3 px-4 bg-[var(--card)] rounded-lg border-4 border-black text-xl font-bold hover:bg-opacity-90 transition-colors"
+          className="w-full py-4 px-6 gradient-button flex items-center justify-center text-xl font-bold rounded-xl"
         >
-          予定を追加
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          新しい予定を追加
         </button>
       ) : (
-        <form onSubmit={handleSubmit} className="bg-[var(--card)] p-4 rounded-lg border-4 border-black">
-          <div className="mb-4">
-            <label htmlFor="task-text" className="block text-sm font-medium mb-1">
-              予定内容
-            </label>
-            <input
-              id="task-text"
-              type="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="予定を入力..."
-              className="w-full p-3 bg-white rounded-lg border-2 border-black"
-              required
-            />
-          </div>
+        <div className="modern-card p-6 animate-fadeIn">
+          <h3 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 mr-2 text-[var(--header)]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            予定の詳細
+          </h3>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="start-time" className="block text-sm font-medium mb-1">
-                開始時間
+              <label htmlFor="task-text" className="modern-label">
+                予定内容
               </label>
               <input
-                id="start-time"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full p-3 bg-white rounded-lg border-2 border-black"
+                id="task-text"
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="予定を入力..."
+                className="modern-input"
                 required
               />
             </div>
-            <div>
-              <label htmlFor="end-time" className="block text-sm font-medium mb-1">
-                終了時間
-              </label>
-              <input
-                id="end-time"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full p-3 bg-white rounded-lg border-2 border-black"
-                required
-              />
-            </div>
-          </div>
 
-          <div className="flex space-x-2">
-            <button
-              type="submit"
-              className="flex-1 py-2 px-4 bg-[var(--header)] text-white rounded-lg border-2 border-black hover:opacity-90 transition-colors"
-            >
-              予定を追加
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsFormOpen(false)}
-              className="py-2 px-4 bg-gray-300 rounded-lg border-2 border-black hover:bg-gray-400 transition-colors"
-            >
-              キャンセル
-            </button>
-          </div>
-        </form>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="start-time" className="modern-label">
+                  開始時間
+                </label>
+                <input
+                  id="start-time"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="modern-input"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="end-time" className="modern-label">
+                  終了時間
+                </label>
+                <input
+                  id="end-time"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="modern-input"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-3 pt-2">
+              <button type="submit" className="flex-1 accent-gradient-button flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                予定を追加
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                キャンセル
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   )

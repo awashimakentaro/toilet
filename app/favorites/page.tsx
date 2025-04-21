@@ -1,11 +1,11 @@
 "use client"
 
 import type React from "react"
-
 import { Header } from "@/components/header"
 import { TodoProvider, useTodo } from "@/context/todo-context"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { fadeInFromBottom, slideInFromLeft } from "@/lib/gsap-utils"
 
 function FavoriteTaskItem({ text }: { text: string }) {
   const { removeFromFavorites, addFavoriteToTasks } = useTodo()
@@ -66,25 +66,36 @@ function FavoriteTaskItem({ text }: { text: string }) {
   }
 
   return (
-    <div className="p-4 mb-3 bg-[var(--card)] rounded-lg border-2 border-black">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xl font-bold">{text}</span>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => removeFromFavorites(text)}
-            className="bg-red-500 text-white px-3 py-1 rounded-lg border border-black"
-            aria-label="お気に入りから削除"
+    <div className="modern-card p-5 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xl font-bold text-gray-800">{text}</h3>
+        <button
+          onClick={() => removeFromFavorites(text)}
+          className="flex items-center justify-center p-2 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+          aria-label="お気に入りから削除"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            削除
-          </button>
-        </div>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+        </button>
       </div>
 
       {showTimeForm ? (
-        <div className="mt-2">
-          <div className="grid grid-cols-2 gap-4 mb-2">
+        <div className="mt-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label htmlFor={`start-time-${text}`} className="block text-sm font-medium mb-1">
+              <label htmlFor={`start-time-${text}`} className="modern-label">
                 開始時間
               </label>
               <input
@@ -92,12 +103,12 @@ function FavoriteTaskItem({ text }: { text: string }) {
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full p-2 bg-white rounded-lg border-2 border-black"
+                className="modern-input"
                 required
               />
             </div>
             <div>
-              <label htmlFor={`end-time-${text}`} className="block text-sm font-medium mb-1">
+              <label htmlFor={`end-time-${text}`} className="modern-label">
                 終了時間
               </label>
               <input
@@ -105,7 +116,7 @@ function FavoriteTaskItem({ text }: { text: string }) {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full p-2 bg-white rounded-lg border-2 border-black"
+                className="modern-input"
                 required
               />
             </div>
@@ -114,29 +125,67 @@ function FavoriteTaskItem({ text }: { text: string }) {
             <button
               onClick={handleConfirmAdd}
               disabled={!startTime || !endTime}
-              className={`px-3 py-1 rounded-lg border border-black ${
-                !startTime || !endTime ? "bg-gray-400" : "bg-green-500 text-white"
+              className={`flex items-center justify-center px-4 py-2 rounded-lg ${
+                !startTime || !endTime ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "accent-gradient-button"
               }`}
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
               予定に追加
             </button>
             <button
               onClick={handleAddWithoutTime}
-              className="bg-blue-500 text-white px-3 py-1 rounded-lg border border-black"
+              className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
               時間なしで追加
             </button>
-            <button onClick={handleCancel} className="bg-gray-300 px-3 py-1 rounded-lg border border-black">
-              キャンセル
+            <button
+              onClick={handleCancel}
+              className="flex items-center justify-center p-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
       ) : (
         <button
           onClick={handleAddToTasks}
-          className="bg-green-500 text-white px-3 py-1 rounded-lg border border-black"
+          className="flex items-center justify-center px-4 py-2 accent-gradient-button"
           aria-label="タスクに追加"
         >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
           予定に追加
         </button>
       )}
@@ -148,6 +197,15 @@ function AddFavoriteForm() {
   const [text, setText] = useState("")
   const { addToFavorites } = useTodo()
 
+  // アニメーション用のref
+  const formRef = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    if (formRef.current) {
+      fadeInFromBottom(formRef.current, 0.3)
+    }
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (text.trim()) {
@@ -157,16 +215,25 @@ function AddFavoriteForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="mb-8 opacity-0">
       <div className="flex space-x-2">
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="よく使う予定を入力..."
-          className="flex-1 p-3 bg-[var(--card)] rounded-lg border-2 border-black"
+          className="modern-input flex-1"
         />
-        <button type="submit" className="bg-[var(--header)] text-white px-4 py-2 rounded-lg border-2 border-black">
+        <button type="submit" className="gradient-button flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
           保存
         </button>
       </div>
@@ -177,23 +244,46 @@ function AddFavoriteForm() {
 function FavoritesPage() {
   const { favoriteTasks, isLoading } = useTodo()
 
+  // アニメーション用のref
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const descRef = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    if (titleRef.current) {
+      slideInFromLeft(titleRef.current, 0.1)
+    }
+    if (descRef.current) {
+      fadeInFromBottom(descRef.current, 0.2)
+    }
+  }, [])
+
   return (
-    <div className="max-w-md mx-auto p-4">
+    <div className="max-w-2xl mx-auto p-4">
       <Header />
 
-      <h2 className="text-2xl font-bold mb-4">よく使う予定</h2>
-      <p className="mb-4">ここに保存した予定は、簡単に予定リストに追加できます。</p>
+      <div className="mb-8">
+        <h2 ref={titleRef} className="text-3xl font-bold mb-2 text-gray-800 opacity-0">
+          よく使う予定
+        </h2>
+        <p ref={descRef} className="text-gray-600 opacity-0">
+          ここに保存した予定は、簡単に予定リストに追加できます。
+        </p>
+      </div>
 
       <AddFavoriteForm />
 
       {isLoading ? (
-        <div className="flex justify-center my-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--header)]"></div>
+        <div className="flex justify-center my-12">
+          <div className="relative w-16 h-16">
+            <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-4 border-[var(--header)] animate-spin"></div>
+          </div>
         </div>
       ) : favoriteTasks.length === 0 ? (
-        <div className="text-center p-8 bg-[var(--card)] rounded-lg border-2 border-black my-4">
-          <p className="text-lg">よく使う予定がありません</p>
-          <p>上のフォームから予定を追加してください</p>
+        <div className="text-center p-12 bg-white rounded-xl border border-gray-200 shadow-md my-8">
+          <div className="text-6xl mb-4">⭐</div>
+          <h3 className="text-2xl font-bold text-gray-700 mb-2">よく使う予定がありません</h3>
+          <p className="text-gray-500">上のフォームから予定を追加してください</p>
         </div>
       ) : (
         <div className="space-y-2">
