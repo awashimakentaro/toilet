@@ -1,6 +1,6 @@
 "use client"
 
-import { DndContext, type DragEndEvent } from "@dnd-kit/core"
+import { DndContext, type DragEndEvent, pointerWithin } from "@dnd-kit/core"
 import { AddTaskForm } from "@/components/add-task-form"
 import { TaskItem } from "@/components/task-item"
 import { ToiletDropArea } from "@/components/toilet-drop-area"
@@ -63,7 +63,7 @@ function TodoApp() {
   }
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>
       <div className="max-w-md mx-auto p-4">
         <Header />
 
