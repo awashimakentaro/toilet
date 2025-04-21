@@ -18,8 +18,8 @@ interface TodoContextType {
   addToFavorites: (text: string) => Promise<void>
   removeFromFavorites: (text: string) => Promise<void>
   addFavoriteToTasks: (text: string, startTime?: string, endTime?: string) => Promise<void>
-  reminderTasks: Task[] // 追加: リマインダーが必要なタスク
-  dismissReminder: (taskId: string) => void // 追加: リマインダーを閉じる関数
+  reminderTasks: Task[] // リマインダーが必要なタスク
+  dismissReminder: (taskId: string) => void // リマインダーを閉じる関数
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
@@ -28,7 +28,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [favoriteTasks, setFavoriteTasks] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [reminderTasks, setReminderTasks] = useState<Task[]>([]) // 追加: リマインダーが必要なタスク
+  const [reminderTasks, setReminderTasks] = useState<Task[]>([]) // リマインダーが必要なタスク
+  const [notifiedTaskIds, setNotifiedTaskIds] = useState<Set<string>>(new Set()) // 既に通知を表示したタスクのID
   const { user } = useAuth()
   const [supabase, setSupabase] = useState<SupabaseClient<Database> | null>(null)
 
@@ -156,6 +157,13 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       if (error) throw error
 
       setTasks(tasks.filter((task) => task.id !== id))
+
+      // 通知済みリストからも削除
+      if (notifiedTaskIds.has(id)) {
+        const newNotifiedTaskIds = new Set(notifiedTaskIds)
+        newNotifiedTaskIds.delete(id)
+        setNotifiedTaskIds(newNotifiedTaskIds)
+      }
     } catch (error) {
       console.error("タスク削除エラー:", error)
     }
@@ -212,7 +220,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     // 初回ロード時にもチェックを実行
     checkReminders()
 
-    // 10秒ごとにチェック（より頻繁にチェック）
+    // 10秒ごとにチェック
     const checkInterval = setInterval(checkReminders, 10000)
 
     // リマインダーをチェックする関数
@@ -224,6 +232,11 @@ export function TodoProvider({ children }: { children: ReactNode }) {
 
       tasks.forEach((task) => {
         if (task.endTime && !task.completed) {
+          // 既に通知を表示したタスクはスキップ
+          if (notifiedTaskIds.has(task.id)) {
+            return
+          }
+
           // 現在の日付を取得し、タスクの終了時間を設定
           const endTime = new Date()
           const [hours, minutes] = task.endTime.split(":").map(Number)
@@ -246,12 +259,10 @@ export function TodoProvider({ children }: { children: ReactNode }) {
 
           if (isWithinReminderWindow) {
             console.log(`"${task.text}" の通知条件が満たされました！`)
+            reminders.push(task)
 
-            // まだリマインダーリストにないタスクのみ追加
-            if (!reminderTasks.some((r) => r.id === task.id)) {
-              console.log(`"${task.text}" をリマインダーに追加します`)
-              reminders.push(task)
-            }
+            // 通知済みとして記録
+            setNotifiedTaskIds((prev) => new Set(prev).add(task.id))
           }
         }
       })
@@ -266,7 +277,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     }
 
     return () => clearInterval(checkInterval)
-  }, [tasks, reminderTasks])
+  }, [tasks, reminderTasks, notifiedTaskIds])
 
   // リマインダーを閉じる関数
   const dismissReminder = (taskId: string) => {
@@ -286,8 +297,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         addToFavorites,
         removeFromFavorites,
         addFavoriteToTasks,
-        reminderTasks, // 追加
-        dismissReminder, // 追加
+        reminderTasks,
+        dismissReminder,
       }}
     >
       {children}
