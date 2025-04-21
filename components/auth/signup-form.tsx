@@ -1,9 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
+import { staggerElements, scaleIn } from "@/lib/gsap-utils"
 
 export function SignupForm() {
   const [email, setEmail] = useState("")
@@ -14,6 +15,23 @@ export function SignupForm() {
   const [isSuccess, setIsSuccess] = useState(false)
   const { signUp } = useAuth()
   const router = useRouter()
+
+  // アニメーション用のref
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const formFieldsRef = useRef<HTMLFormElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (titleRef.current) {
+      scaleIn(titleRef.current, 0.2)
+    }
+    if (formFieldsRef.current) {
+      staggerElements(formFieldsRef.current.children, 0.15, 0.4)
+    }
+    if (buttonRef.current) {
+      scaleIn(buttonRef.current, 1.0)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,7 +61,10 @@ export function SignupForm() {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-gray-100">
-        <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-[var(--header)] to-blue-500 bg-clip-text text-transparent">
+        <h2
+          ref={titleRef}
+          className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-[var(--header)] to-blue-500 bg-clip-text text-transparent opacity-0"
+        >
           アカウント作成
         </h2>
 
@@ -87,8 +108,8 @@ export function SignupForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
+        <form ref={formFieldsRef} onSubmit={handleSubmit} className="space-y-6">
+          <div className="opacity-0">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               メールアドレス
             </label>
@@ -116,7 +137,7 @@ export function SignupForm() {
             </div>
           </div>
 
-          <div>
+          <div className="opacity-0">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               パスワード
             </label>
@@ -148,7 +169,7 @@ export function SignupForm() {
             </div>
           </div>
 
-          <div>
+          <div className="opacity-0">
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
               パスワード（確認）
             </label>
@@ -181,9 +202,10 @@ export function SignupForm() {
           </div>
 
           <button
+            ref={buttonRef}
             type="submit"
             disabled={isLoading || isSuccess}
-            className="w-full py-3 px-4 bg-gradient-to-r from-[var(--header)] to-blue-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--header)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 bg-gradient-to-r from-[var(--header)] to-blue-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--header)] disabled:opacity-50 disabled:cursor-not-allowed opacity-0"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">

@@ -1,11 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
+import { staggerElements, scaleIn } from "@/lib/gsap-utils"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -14,6 +15,27 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const { signIn } = useAuth()
   const router = useRouter()
+
+  // アニメーション用のref
+  const formLogoRef = useRef<HTMLDivElement>(null)
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const formFieldsRef = useRef<HTMLFormElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (formLogoRef.current) {
+      scaleIn(formLogoRef.current, 0.2)
+    }
+    if (titleRef.current) {
+      scaleIn(titleRef.current, 0.4)
+    }
+    if (formFieldsRef.current) {
+      staggerElements(formFieldsRef.current.children, 0.15, 0.6)
+    }
+    if (buttonRef.current) {
+      scaleIn(buttonRef.current, 1.2)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +55,7 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-gray-100">
-        <div className="flex justify-center mb-6">
+        <div ref={formLogoRef} className="flex justify-center mb-6 opacity-0">
           <div className="relative w-24 h-24">
             <Image
               src="/toilet.png"
@@ -45,7 +67,10 @@ export function LoginForm() {
           </div>
         </div>
 
-        <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-[var(--header)] to-blue-500 bg-clip-text text-transparent">
+        <h2
+          ref={titleRef}
+          className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-[var(--header)] to-blue-500 bg-clip-text text-transparent opacity-0"
+        >
           ログイン
         </h2>
 
@@ -68,8 +93,8 @@ export function LoginForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
+        <form ref={formFieldsRef} onSubmit={handleSubmit} className="space-y-6">
+          <div className="opacity-0">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               メールアドレス
             </label>
@@ -97,7 +122,7 @@ export function LoginForm() {
             </div>
           </div>
 
-          <div>
+          <div className="opacity-0">
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 パスワード
@@ -137,9 +162,10 @@ export function LoginForm() {
           </div>
 
           <button
+            ref={buttonRef}
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 px-4 bg-gradient-to-r from-[var(--header)] to-blue-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--header)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 bg-gradient-to-r from-[var(--header)] to-blue-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--header)] disabled:opacity-50 disabled:cursor-not-allowed opacity-0"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
