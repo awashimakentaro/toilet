@@ -79,11 +79,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, redirectTo?: string) => {
     if (!supabase) throw new Error("Supabaseクライアントが初期化されていません")
 
-    const options = redirectTo
-      ? {
-          emailRedirectTo: redirectTo,
-        }
-      : undefined
+    // 現在のホストURLを取得（ローカル開発とデプロイ環境の両方で動作するように）
+    const baseUrl =
+      typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : redirectTo || ""
+
+    // リダイレクトURLを設定
+    const options = {
+      emailRedirectTo: redirectTo || `${baseUrl}/auth/callback`,
+    }
 
     const { error } = await supabase.auth.signUp({
       email,
