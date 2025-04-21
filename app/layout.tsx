@@ -2,6 +2,7 @@ import type React from "react"
 import "./globals.css"
 import type { Metadata } from "next"
 import { AuthProvider } from "@/context/auth-context"
+import { UserMenu } from "@/components/user-menu"
 
 export const metadata: Metadata = {
   title: "うんこフラッシュTODOアプリ",
@@ -16,7 +17,10 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <UserMenu />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )
