@@ -28,6 +28,12 @@
 
   html {
     font-size: 14px; /* ベースフォントサイズを小さく */
+    -webkit-text-size-adjust: 100%; /* テキストサイズの自動調整を防止 */
+  }
+
+  body {
+    touch-action: manipulation; /* ダブルタップによるズームを防止 */
+    -webkit-overflow-scrolling: touch; /* iOSでのスムーズスクロール */
   }
 }
 
