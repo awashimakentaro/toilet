@@ -61,8 +61,24 @@ export function ToiletDropArea({ isAnimating, onAnimationComplete }: ToiletDropA
       data-toilet="true"
     >
       <div className="text-center mb-4">
-        <h3 className="text-xl font-bold text-gray-700">タスクをここにドロップ</h3>
+        <h3 className="text-xl font-bold text-gray-700 flex items-center justify-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 mr-2 text-[var(--header)]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+          タスクをここにドロップ
+        </h3>
         <p className="text-gray-500">完了した予定をトイレに流しましょう</p>
+        <div
+          className={`mt-2 text-sm font-medium ${isOver ? "text-[var(--header)]" : "text-gray-400"} transition-colors`}
+        >
+          ドラッグしたタスクをここで離してください
+        </div>
       </div>
 
       <div
@@ -105,7 +121,9 @@ export function ToiletDropArea({ isAnimating, onAnimationComplete }: ToiletDropA
         {/* ドロップエリアの視覚的なヒント */}
         <div
           className={`absolute inset-0 rounded-full border-4 border-dashed transition-all duration-300 ${
-            isOver ? "border-[var(--header)] scale-110" : "border-gray-300 scale-100"
+            isOver
+              ? "border-[var(--header)] scale-110 animate-pulse border-opacity-100"
+              : "border-gray-300 scale-100 border-opacity-70"
           }`}
         />
       </div>

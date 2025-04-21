@@ -40,6 +40,9 @@ export function TaskItem({ task, index }: TaskItemProps) {
   const style = {
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.5 : 1,
+    cursor: "grab",
+    zIndex: isDragging ? 100 : "auto",
+    boxShadow: isDragging ? "0 8px 20px rgba(0, 0, 0, 0.2)" : "none",
   }
 
   const handleAddToFavorites = (e: React.MouseEvent) => {
@@ -100,7 +103,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
         style={style}
         {...attributes}
         {...listeners}
-        className={`modern-card p-5 flex flex-col ${transform ? "z-10" : ""} cursor-grab`}
+        className={`modern-card p-5 flex flex-col ${isDragging ? "shadow-2xl" : ""} transition-all duration-200`}
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center pr-2">
@@ -131,10 +134,10 @@ export function TaskItem({ task, index }: TaskItemProps) {
             )}
 
             {/* ドラッグハンドル */}
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 cursor-grab">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors cursor-grab active:cursor-grabbing">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-500"
+                className="h-5 w-5 text-gray-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -147,7 +150,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
 
         {/* ドラッグヒント */}
         {!showAnalysis && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 rounded-lg pointer-events-none hover:bg-opacity-10 transition-all">
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 rounded-lg pointer-events-none group-hover:bg-opacity-5 transition-all">
             <p className="text-sm text-white bg-black bg-opacity-70 px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
               ドラッグしてトイレに流す
             </p>

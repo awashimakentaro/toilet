@@ -462,3 +462,55 @@ body {
     padding: 4px;
   }
 }
+
+/* ドラッグ操作関連のスタイル */
+.dragging {
+  cursor: grabbing !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transform: scale(1.02);
+  z-index: 100;
+}
+
+/* ドラッグ中のアニメーション */
+@keyframes pulse-border {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.8);
+  }
+}
+
+.drag-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.modern-card:hover .drag-hint {
+  opacity: 1;
+}
+
+/* タッチデバイス用の最適化 */
+@media (hover: none) {
+  .modern-card {
+    touch-action: none;
+  }
+
+  .drag-handle {
+    width: 44px;
+    height: 44px;
+  }
+}

@@ -1,6 +1,14 @@
 "use client"
 
-import { DndContext, type DragEndEvent, pointerWithin } from "@dnd-kit/core"
+import {
+  DndContext,
+  type DragEndEvent,
+  pointerWithin,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  TouchSensor,
+} from "@dnd-kit/core"
 import { AddTaskForm } from "@/components/add-task-form"
 import { TaskItem } from "@/components/task-item"
 import { ToiletDropArea } from "@/components/toilet-drop-area"
@@ -13,6 +21,24 @@ import { fadeInFromBottom } from "@/lib/gsap-utils"
 
 function TodoApp() {
   const { tasks, flushTask, isLoading, reminderTasks, dismissReminder } = useTodo()
+
+  // ドラッグ操作のセンサーを設定
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      // ポインターの移動が5px以上で開始（小さな動きでは開始しない）
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      // タッチの移動が10px以上で開始（スクロールとの区別）
+      activationConstraint: {
+        delay: 250,
+        tolerance: 10,
+      },
+    }),
+  )
+
   const [isAnimating, setIsAnimating] = useState(false)
 
   // アニメーション用のref
@@ -78,7 +104,7 @@ function TodoApp() {
   }
 
   return (
-    <DndContext onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>
+    <DndContext onDragEnd={handleDragEnd} collisionDetection={pointerWithin} sensors={sensors}>
       <div className="max-w-2xl mx-auto p-4">
         <Header />
 
