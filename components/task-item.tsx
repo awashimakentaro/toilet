@@ -188,19 +188,6 @@ export function TaskItem({ task, index }: TaskItemProps) {
 
             {/* 重要度アイコン表示 */}
             {getImportanceIcon()}
-
-            {/* ドラッグハンドル */}
-            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors cursor-grab active:cursor-grabbing ml-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-              </svg>
-            </div>
           </div>
         </div>
 
