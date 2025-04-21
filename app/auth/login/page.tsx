@@ -53,7 +53,7 @@ export default function LoginPage() {
             </div>
           </div>
           <h1 ref={titleRef} className="text-4xl font-bold mb-6 text-center opacity-0">
-            うんこフラッシュ
+            💩フラッシュ
           </h1>
           <p ref={subtitleRef} className="text-xl mb-8 text-center opacity-0">
             タスクを完了してトイレに流そう！
@@ -94,7 +94,7 @@ export default function LoginPage() {
               </div>
             </div>
             <h1 ref={mobileTitleRef} className="text-3xl font-bold text-[var(--header)] opacity-0">
-              うんこフラッシュ
+              💩フラッシュ
             </h1>
             <p ref={mobileSubtitleRef} className="text-gray-600 mt-2 opacity-0">
               タスクを完了してトイレに流そう！
@@ -104,7 +104,7 @@ export default function LoginPage() {
           <LoginForm />
 
           <div className="mt-8 text-center text-sm text-gray-500">
-            <p>&copy; {new Date().getFullYear()} うんこフラッシュTODO. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} 💩フラッシュTODO. All rights reserved.</p>
           </div>
         </div>
       </div>

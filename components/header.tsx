@@ -31,7 +31,7 @@ export function Header() {
           className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 flex items-center justify-center opacity-0"
         >
           <span className="mr-2 text-3xl sm:text-4xl">💩</span>
-          うんこフラッシュ
+          フラッシュ
         </h1>
         <p className="text-center text-white/80 font-medium text-sm sm:text-base">タスクを完了してスッキリしよう！</p>
       </div>
