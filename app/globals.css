@@ -170,6 +170,17 @@ body {
   }
 }
 
+/* 時間表示のパルスアニメーション */
+@keyframes time-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(74, 171, 247, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(74, 171, 247, 0.7);
+  }
+}
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
@@ -398,4 +409,56 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* 新しい時間表示のスタイル */
+.time-display-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.time-display-card {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #4dabf7 0%, #3a8ee6 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(74, 171, 247, 0.3);
+  animation: time-pulse 2s infinite;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.time-display-icon {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  padding: 6px;
+}
+
+.time-display-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 640px) {
+  .time-display-text {
+    font-size: 0.9rem;
+  }
+
+  .time-display-card {
+    padding: 4px 8px;
+  }
+
+  .time-display-icon {
+    padding: 4px;
+  }
 }

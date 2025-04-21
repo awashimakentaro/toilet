@@ -102,44 +102,48 @@ export function TaskItem({ task, index }: TaskItemProps) {
         {...listeners}
         className={`modern-card p-5 flex flex-col ${transform ? "z-10" : ""} cursor-grab`}
       >
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xl font-bold text-gray-800">{task.text}</h3>
-
-          {/* ドラッグハンドル */}
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 cursor-grab">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-            </svg>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center pr-2">
+            <h3 className="text-xl font-bold text-gray-800 mr-2">{task.text}</h3>
           </div>
-        </div>
 
-        {timeDisplay && (
-          <div className="mb-3">
-            <span className="modern-badge badge-blue flex items-center w-fit">
+          <div className="flex items-center">
+            {timeDisplay && (
+              <div className="time-display-card mr-2">
+                <div className="time-display-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="time-display-text">{timeDisplay}</div>
+              </div>
+            )}
+
+            {/* ドラッグハンドル */}
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 cursor-grab">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1"
+                className="h-5 w-5 text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
               </svg>
-              {timeDisplay}
-            </span>
+            </div>
           </div>
-        )}
+        </div>
 
         {/* ドラッグヒント */}
         {!showAnalysis && (
