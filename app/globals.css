@@ -472,6 +472,8 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   transform: scale(1.02);
   z-index: 100;
+  will-change: transform; /* パフォーマンス最適化 */
+  touch-action: none; /* タッチ操作の最適化 */
 }
 
 /* ドラッグ中のアニメーション */
@@ -510,11 +512,15 @@ body {
 @media (hover: none) {
   .modern-card {
     touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .drag-handle {
     width: 44px;
     height: 44px;
+    min-height: 44px; /* タップ領域を確保 */
+    min-width: 44px; /* タップ領域を確保 */
   }
 }
 

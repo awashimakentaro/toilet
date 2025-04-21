@@ -125,6 +125,9 @@ export function ToiletDropArea({ isAnimating, onAnimationComplete }: ToiletDropA
               ? "border-[var(--header)] scale-110 animate-pulse border-opacity-100"
               : "border-gray-300 scale-100 border-opacity-70"
           }`}
+          style={{
+            pointerEvents: "none", // ドラッグ操作を妨げないように
+          }}
         />
       </div>
     </div>

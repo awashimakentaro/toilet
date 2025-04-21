@@ -22,19 +22,20 @@ import { fadeInFromBottom } from "@/lib/gsap-utils"
 function TodoApp() {
   const { tasks, flushTask, isLoading, reminderTasks, dismissReminder } = useTodo()
 
-  // ドラッグ操作のセンサーを設定
+  // DndContextのセンサー設定を最適化
   const sensors = useSensors(
     useSensor(PointerSensor, {
       // ポインターの移動が5px以上で開始（小さな動きでは開始しない）
       activationConstraint: {
-        distance: 5,
+        distance: 8, // 5pxから8pxに増加してより意図的な操作を要求
+        delay: 0, // 遅延を0に設定
       },
     }),
     useSensor(TouchSensor, {
       // タッチの移動が10px以上で開始（スクロールとの区別）
       activationConstraint: {
-        delay: 250,
-        tolerance: 10,
+        delay: 150, // 250msから150msに短縮
+        tolerance: 8, // 10pxから8pxに変更
       },
     }),
   )

@@ -24,6 +24,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
   // アニメーション用のref
   const taskItemRef = useRef<HTMLDivElement>(null)
 
+  // useDraggableの設定を最適化
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
     data: {
@@ -37,12 +38,16 @@ export function TaskItem({ task, index }: TaskItemProps) {
     }
   }, [index])
 
+  // スタイルを最適化
   const style = {
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.5 : 1,
-    cursor: "grab",
+    cursor: isDragging ? "grabbing" : "grab",
     zIndex: isDragging ? 100 : "auto",
     boxShadow: isDragging ? "0 8px 20px rgba(0, 0, 0, 0.2)" : "none",
+    touchAction: "none", // タッチ操作を最適化
+    WebkitTapHighlightColor: "transparent", // タップ時のハイライトを無効化
+    transition: isDragging ? "none" : "all 0.2s ease", // ドラッグ中はトランジションを無効化
   }
 
   const handleAddToFavorites = (e: React.MouseEvent) => {
@@ -103,7 +108,9 @@ export function TaskItem({ task, index }: TaskItemProps) {
         style={style}
         {...attributes}
         {...listeners}
-        className={`modern-card p-3 sm:p-5 flex flex-col ${isDragging ? "shadow-2xl" : ""} transition-all duration-200`}
+        className={`modern-card p-3 sm:p-5 flex flex-col ${
+          isDragging ? "shadow-2xl scale-[1.02] z-50" : ""
+        } ${isDragging ? "" : "transition-all duration-200"}`}
       >
         <div className="flex items-center justify-between mb-2 sm:mb-4">
           <div className="flex items-center pr-2">
@@ -134,7 +141,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
             )}
 
             {/* ドラッグハンドル */}
-            <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors cursor-grab active:cursor-grabbing">
+            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors cursor-grab active:cursor-grabbing">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600"
