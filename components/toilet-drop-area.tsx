@@ -57,14 +57,14 @@ export function ToiletDropArea({ isAnimating, onAnimationComplete }: ToiletDropA
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col items-center justify-center mt-12 mb-8 transition-opacity duration-500 ${isVisible ? "opacity-100" : "opacity-0"}`}
+      className={`flex flex-col items-center justify-center mt-8 sm:mt-12 mb-4 sm:mb-8 transition-opacity duration-500 ${isVisible ? "opacity-100" : "opacity-0"}`}
       data-toilet="true"
     >
-      <div className="text-center mb-4">
-        <h3 className="text-xl font-bold text-gray-700 flex items-center justify-center">
+      <div className="text-center mb-2 sm:mb-4">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-700 flex items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mr-2 text-[var(--header)]"
+            className="h-5 w-5 sm:h-6 sm:w-6 mr-1 sm:mr-2 text-[var(--header)]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -73,9 +73,9 @@ export function ToiletDropArea({ isAnimating, onAnimationComplete }: ToiletDropA
           </svg>
           タスクをここにドロップ
         </h3>
-        <p className="text-gray-500">完了した予定をトイレに流しましょう</p>
+        <p className="text-gray-500 text-sm sm:text-base">完了した予定をトイレに流しましょう</p>
         <div
-          className={`mt-2 text-sm font-medium ${isOver ? "text-[var(--header)]" : "text-gray-400"} transition-colors`}
+          className={`mt-1 sm:mt-2 text-xs sm:text-sm font-medium ${isOver ? "text-[var(--header)]" : "text-gray-400"} transition-colors`}
         >
           ドラッグしたタスクをここで離してください
         </div>
@@ -83,11 +83,11 @@ export function ToiletDropArea({ isAnimating, onAnimationComplete }: ToiletDropA
 
       <div
         ref={toiletRef}
-        className={`relative w-48 h-48 mx-auto ${isOver ? "scale-110 transition-transform" : ""} ${
+        className={`relative w-36 h-36 sm:w-48 sm:h-48 mx-auto ${isOver ? "scale-110 transition-transform" : ""} ${
           isAnimating ? "toilet-shake" : "animate-float"
         }`}
       >
-        <div className="bg-white p-4 rounded-full shadow-lg">
+        <div className="bg-white p-3 sm:p-4 rounded-full shadow-lg">
           <Image
             src="/toilet.png"
             alt="トイレ"

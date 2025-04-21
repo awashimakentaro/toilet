@@ -56,16 +56,16 @@ export function AddTaskForm() {
   }
 
   return (
-    <div ref={formContainerRef} className="mb-8 opacity-0">
+    <div ref={formContainerRef} className="mb-4 sm:mb-8 opacity-0">
       {!isFormOpen ? (
         <button
           ref={addButtonRef}
           onClick={() => setIsFormOpen(true)}
-          className="w-full py-4 px-6 gradient-button flex items-center justify-center text-xl font-bold rounded-xl"
+          className="w-full py-3 sm:py-4 px-4 sm:px-6 gradient-button flex items-center justify-center text-lg sm:text-xl font-bold rounded-xl"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mr-2"
+            className="h-5 w-5 sm:h-6 sm:w-6 mr-2"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -75,11 +75,11 @@ export function AddTaskForm() {
           新しい予定を追加
         </button>
       ) : (
-        <div className="modern-card p-6 animate-fadeIn">
-          <h3 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
+        <div className="modern-card p-4 sm:p-6 animate-fadeIn">
+          <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800 flex items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 mr-2 text-[var(--header)]"
+              className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[var(--header)]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -94,7 +94,7 @@ export function AddTaskForm() {
             予定の詳細
           </h3>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
             <div>
               <label htmlFor="task-text" className="modern-label">
                 予定内容
@@ -110,7 +110,7 @@ export function AddTaskForm() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               <div>
                 <label htmlFor="start-time" className="modern-label">
                   開始時間
@@ -139,11 +139,11 @@ export function AddTaskForm() {
               </div>
             </div>
 
-            <div className="flex space-x-3 pt-2">
+            <div className="flex space-x-2 sm:space-x-3 pt-1 sm:pt-2">
               <button type="submit" className="flex-1 accent-gradient-button flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
+                  className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -155,7 +155,7 @@ export function AddTaskForm() {
               <button
                 type="button"
                 onClick={() => setIsFormOpen(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm sm:text-base"
               >
                 キャンセル
               </button>

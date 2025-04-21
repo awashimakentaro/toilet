@@ -20,6 +20,17 @@
   --transition: all 0.3s ease;
 }
 
+/* モバイル向けのサイズ調整 */
+@media (max-width: 640px) {
+  :root {
+    --border-radius: 10px;
+  }
+
+  html {
+    font-size: 14px; /* ベースフォントサイズを小さく */
+  }
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -449,20 +460,6 @@ body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-@media (max-width: 640px) {
-  .time-display-text {
-    font-size: 0.9rem;
-  }
-
-  .time-display-card {
-    padding: 4px 8px;
-  }
-
-  .time-display-icon {
-    padding: 4px;
-  }
-}
-
 /* ドラッグ操作関連のスタイル */
 .dragging {
   cursor: grabbing !important;
@@ -512,5 +509,63 @@ body {
   .drag-handle {
     width: 44px;
     height: 44px;
+  }
+}
+
+/* モバイル向けのスタイル調整 */
+@media (max-width: 640px) {
+  .time-display-text {
+    font-size: 0.85rem;
+  }
+
+  .time-display-card {
+    padding: 3px 6px;
+  }
+
+  .time-display-icon {
+    padding: 3px;
+  }
+
+  .modern-card {
+    padding: 0.75rem !important;
+  }
+
+  .gradient-button,
+  .accent-gradient-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .modern-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  h1 {
+    font-size: 1.75rem !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+  }
+
+  h3 {
+    font-size: 1.25rem !important;
+  }
+
+  p {
+    font-size: 0.9rem;
+  }
+
+  .text-xl {
+    font-size: 1.1rem !important;
+  }
+
+  .text-2xl {
+    font-size: 1.3rem !important;
+  }
+
+  .text-3xl {
+    font-size: 1.5rem !important;
   }
 }

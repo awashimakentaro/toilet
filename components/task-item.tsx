@@ -96,18 +96,18 @@ export function TaskItem({ task, index }: TaskItemProps) {
     task.startTime && task.endTime ? `${formatTime(task.startTime)} 〜 ${formatTime(task.endTime)}` : ""
 
   return (
-    <div ref={taskItemRef} className="relative mb-5 opacity-0">
+    <div ref={taskItemRef} className="relative mb-3 opacity-0 sm:mb-5">
       {/* ドラッグ可能な部分 */}
       <div
         ref={setNodeRef}
         style={style}
         {...attributes}
         {...listeners}
-        className={`modern-card p-5 flex flex-col ${isDragging ? "shadow-2xl" : ""} transition-all duration-200`}
+        className={`modern-card p-3 sm:p-5 flex flex-col ${isDragging ? "shadow-2xl" : ""} transition-all duration-200`}
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-2 sm:mb-4">
           <div className="flex items-center pr-2">
-            <h3 className="text-xl font-bold text-gray-800 mr-2">{task.text}</h3>
+            <h3 className="text-base sm:text-xl font-bold text-gray-800 mr-2">{task.text}</h3>
           </div>
 
           <div className="flex items-center">
@@ -116,7 +116,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
                 <div className="time-display-icon">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
+                    className="h-4 w-4 sm:h-5 sm:w-5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -134,10 +134,10 @@ export function TaskItem({ task, index }: TaskItemProps) {
             )}
 
             {/* ドラッグハンドル */}
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors cursor-grab active:cursor-grabbing">
+            <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors cursor-grab active:cursor-grabbing">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-600"
+                className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -151,7 +151,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
         {/* ドラッグヒント */}
         {!showAnalysis && (
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 rounded-lg pointer-events-none group-hover:bg-opacity-5 transition-all">
-            <p className="text-sm text-white bg-black bg-opacity-70 px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+            <p className="text-xs sm:text-sm text-white bg-black bg-opacity-70 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
               ドラッグしてトイレに流す
             </p>
           </div>
@@ -159,34 +159,39 @@ export function TaskItem({ task, index }: TaskItemProps) {
       </div>
 
       {/* ボタンとうんこ解析結果（ドラッグ可能領域の外に配置） */}
-      <div className="mt-2">
+      <div className="mt-1 sm:mt-2">
         {/* ボタン行 - ドラッグ可能領域の外に配置 */}
-        <div className="flex space-x-2">
+        <div className="flex space-x-1 sm:space-x-2">
           {/* お気に入りボタン */}
           <button
             onClick={handleAddToFavorites}
-            className="flex items-center justify-center px-3 py-1.5 rounded-lg bg-yellow-50 text-yellow-600 border border-yellow-200 hover:bg-yellow-100 transition-colors"
+            className="flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-yellow-50 text-yellow-600 border border-yellow-200 hover:bg-yellow-100 transition-colors text-xs sm:text-sm"
             aria-label="お気に入りに追加"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-3 w-3 sm:h-4 sm:w-4 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
-            <span className="text-sm">お気に入り</span>
+            <span className="text-xs sm:text-sm">お気に入り</span>
           </button>
 
           {/* うんこ解析ボタン */}
           <button
             ref={buttonRef}
             onClick={handleAnalysisClick}
-            className={`flex-1 text-sm ${
+            className={`flex-1 text-xs sm:text-sm ${
               isAnalyzing ? "bg-gray-500" : "bg-gradient-to-r from-[var(--header)] to-pink-400"
-            } text-white p-2 rounded-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center shadow-md`}
+            } text-white p-1 sm:p-2 rounded-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center shadow-md`}
             disabled={isAnalyzing}
           >
             {isAnalyzing ? (
               <span className="flex items-center justify-center">
                 <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  className="animate-spin -ml-1 mr-1 h-3 w-3 sm:h-4 sm:w-4 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -204,7 +209,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
               <>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
+                  className="h-3 w-3 sm:h-4 sm:w-4 mr-1"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -224,30 +229,32 @@ export function TaskItem({ task, index }: TaskItemProps) {
 
         {/* うんこ解析結果 */}
         {showAnalysis && analysisResult && (
-          <div className="mt-3 p-4 bg-white rounded-xl border border-gray-200 shadow-md animate-fadeIn">
-            <h4 className="text-lg font-bold mb-3 flex items-center text-gray-800">
+          <div className="mt-2 p-3 sm:p-4 bg-white rounded-xl border border-gray-200 shadow-md animate-fadeIn">
+            <h4 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 flex items-center text-gray-800">
               {analysisResult.emoji} {analysisResult.title}
             </h4>
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-              <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{analysisResult.description}</p>
+            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-100">
+              <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                {analysisResult.description}
+              </p>
             </div>
 
             {/* インパクトレベルの視覚化 */}
-            <div className="mt-3">
+            <div className="mt-2 sm:mt-3">
               <div className="flex items-center">
-                <span className="text-sm text-gray-600 mr-2">インパクト:</span>
+                <span className="text-xs sm:text-sm text-gray-600 mr-2">インパクト:</span>
                 <div className="flex space-x-1">
                   {[1, 2, 3, 4, 5].map((level) => (
                     <div
                       key={level}
-                      className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                      className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center ${
                         level <= analysisResult.impactLevel ? "bg-[var(--header)]" : "bg-gray-200"
                       }`}
                     >
                       {level <= analysisResult.impactLevel && (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3 text-white"
+                          className="h-2 w-2 sm:h-3 sm:w-3 text-white"
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >

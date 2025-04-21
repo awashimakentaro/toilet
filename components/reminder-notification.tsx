@@ -51,21 +51,21 @@ export function ReminderNotification({ task, onClose }: ReminderNotificationProp
 
   return (
     <div
-      className={`fixed bottom-4 right-4 max-w-sm glass-effect p-4 rounded-xl shadow-lg transition-all duration-500 z-50 border border-yellow-200 ${
+      className={`fixed bottom-2 sm:bottom-4 right-2 sm:right-4 max-w-xs sm:max-w-sm glass-effect p-3 sm:p-4 rounded-lg sm:rounded-xl shadow-lg transition-all duration-500 z-50 border border-yellow-200 ${
         isVisible ? "opacity-100 transform translate-y-0" : "opacity-0 transform translate-y-10"
       } ${isShaking ? "animate-shake" : ""}`}
     >
       <div className="flex">
         <div className="flex-shrink-0">
-          <span className="text-2xl animate-pulse-slow">🚽</span>
+          <span className="text-xl sm:text-2xl animate-pulse-slow">🚽</span>
         </div>
-        <div className="ml-3">
-          <p className="text-sm font-bold text-gray-800">「{task.text}」をまだ排出できていません</p>
+        <div className="ml-2 sm:ml-3">
+          <p className="text-xs sm:text-sm font-bold text-gray-800">「{task.text}」をまだ排出できていません</p>
           <p className="text-xs text-gray-600 mt-1">
             <span className="inline-flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-3 w-3 mr-1"
+                className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -80,14 +80,14 @@ export function ReminderNotification({ task, onClose }: ReminderNotificationProp
               終了時刻: {task.endTime?.substring(0, 5)}
             </span>
           </p>
-          <p className="text-xs text-[var(--header)] mt-2 font-medium">早くお花を摘んでください 🌸</p>
+          <p className="text-xs text-[var(--header)] mt-1 sm:mt-2 font-medium">早くお花を摘んでください 🌸</p>
         </div>
         <button
           onClick={handleClose}
           className="ml-auto flex-shrink-0 text-gray-400 hover:text-gray-600 focus:outline-none"
           aria-label="通知を閉じる"
         >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
