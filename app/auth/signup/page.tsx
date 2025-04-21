@@ -28,7 +28,7 @@ export default function SignupPage() {
     slideInFromRight(subtitleRef.current, 0.4)
     fadeInFromBottom(featureBoxRef.current, 0.6)
 
-    // 個別の要素にアニメーションを適用
+    // 個別の要素に��ニメーションを適用
     fadeInFromBottom(featureItem1Ref.current, 0.8)
     fadeInFromBottom(featureItem2Ref.current, 0.9)
     fadeInFromBottom(featureItem3Ref.current, 1.0)

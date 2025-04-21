@@ -159,6 +159,17 @@ body {
   }
 }
 
+/* ボタンのホバーアニメーション */
+@keyframes button-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.8);
+  }
+}
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
@@ -177,6 +188,10 @@ body {
 
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-button-glow {
+  animation: button-glow 2s ease-in-out infinite;
 }
 
 .toilet-shake {
