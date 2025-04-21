@@ -33,6 +33,7 @@ export interface Database {
           updated_at: string
           start_time: string | null
           end_time: string | null
+          importance: number | null
         }
         Insert: {
           id?: string
@@ -43,6 +44,7 @@ export interface Database {
           updated_at?: string
           start_time?: string | null
           end_time?: string | null
+          importance?: number | null
         }
         Update: {
           id?: string
@@ -53,6 +55,7 @@ export interface Database {
           updated_at?: string
           start_time?: string | null
           end_time?: string | null
+          importance?: number | null
         }
       }
       favorite_tasks: {

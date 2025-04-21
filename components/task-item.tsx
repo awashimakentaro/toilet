@@ -100,6 +100,52 @@ export function TaskItem({ task, index }: TaskItemProps) {
   const timeDisplay =
     task.startTime && task.endTime ? `${formatTime(task.startTime)} 〜 ${formatTime(task.endTime)}` : ""
 
+  // 重要度に応じたうんこアイコンを取得（3段階）
+  const getImportanceIcon = () => {
+    if (!task.importance) return null
+
+    // 重要度に応じたうんこアイコンとスタイル（3段階）
+    const getPoopStyle = () => {
+      switch (task.importance) {
+        case 1:
+          return {
+            icon: "💩",
+            style: "opacity-40 scale-75",
+            label: "低",
+          }
+        case 2:
+          return {
+            icon: "💩",
+            style: "opacity-70 scale-100",
+            label: "中",
+          }
+        case 3:
+          return {
+            icon: "💩",
+            style: "opacity-100 scale-125",
+            label: "高",
+          }
+        default:
+          return {
+            icon: "💩",
+            style: "opacity-70 scale-100",
+            label: "中",
+          }
+      }
+    }
+
+    const poopStyle = getPoopStyle()
+
+    return (
+      <div className="flex flex-col items-center justify-center ml-2">
+        <div className={`text-2xl ${poopStyle.style} transition-all`} title={`重要度: ${poopStyle.label}`}>
+          {poopStyle.icon}
+        </div>
+        <span className="text-xs text-gray-500">{poopStyle.label}</span>
+      </div>
+    )
+  }
+
   return (
     <div ref={taskItemRef} className="relative mb-3 opacity-0 sm:mb-5">
       {/* ドラッグ可能な部分 */}
@@ -140,8 +186,11 @@ export function TaskItem({ task, index }: TaskItemProps) {
               </div>
             )}
 
+            {/* 重要度アイコン表示 */}
+            {getImportanceIcon()}
+
             {/* ドラッグハンドル */}
-            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors cursor-grab active:cursor-grabbing">
+            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors cursor-grab active:cursor-grabbing ml-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600"

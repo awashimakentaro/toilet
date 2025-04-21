@@ -12,18 +12,36 @@ function FavoriteTaskItem({ text }: { text: string }) {
   const [showTimeForm, setShowTimeForm] = useState(false)
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [importance, setImportance] = useState<number>(2) // デフォルトは中程度の重要度（3段階の場合は2）
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({
+    poop: null,
+    po: null,
+    pee: null,
+  })
 
   // コンポーネントがマウントされたときに音声要素を作成
-  if (typeof window !== "undefined" && !audioRef.current) {
-    audioRef.current = new Audio("/poop-sound.mp3")
+  if (typeof window !== "undefined") {
+    if (!audioRefs.current.poop) {
+      audioRefs.current.poop = new Audio("/poop-sound.mp3")
+    }
+    if (!audioRefs.current.po) {
+      audioRefs.current.po = new Audio("/po.mp3")
+    }
+    if (!audioRefs.current.pee) {
+      audioRefs.current.pee = new Audio("/man-pee.mp3")
+    }
   }
 
-  const playPoopSound = () => {
-    if (audioRef.current) {
+  const playRandomSound = () => {
+    // 音声ファイルの配列からランダムに1つ選択
+    const soundKeys = Object.keys(audioRefs.current)
+    const randomKey = soundKeys[Math.floor(Math.random() * soundKeys.length)]
+    const audio = audioRefs.current[randomKey]
+
+    if (audio) {
       // 音声を最初から再生するためにcurrentTimeをリセット
-      audioRef.current.currentTime = 0
-      audioRef.current.play().catch((e) => {
+      audio.currentTime = 0
+      audio.play().catch((e) => {
         console.error("音声再生エラー:", e)
       })
     }
@@ -43,26 +61,57 @@ function FavoriteTaskItem({ text }: { text: string }) {
   }
 
   const handleConfirmAdd = async () => {
-    await addFavoriteToTasks(text, startTime, endTime)
+    await addFavoriteToTasks(text, startTime, endTime, importance)
     setShowTimeForm(false)
     setStartTime("")
     setEndTime("")
-    // 音を再生
-    playPoopSound()
+    setImportance(2) // 重要度をリセット（3段階の場合は中程度の2）
+    // ランダムな効果音を再生
+    playRandomSound()
   }
 
   const handleAddWithoutTime = async () => {
     // 時間なしで追加
-    await addFavoriteToTasks(text)
+    await addFavoriteToTasks(text, undefined, undefined, importance)
     setShowTimeForm(false)
-    // 音を再生
-    playPoopSound()
+    setImportance(2) // 重要度をリセット（3段階の場合は中程度の2）
+    // ランダムな効果音を再生
+    playRandomSound()
   }
 
   const handleCancel = () => {
     setShowTimeForm(false)
     setStartTime("")
     setEndTime("")
+    setImportance(2) // 重要度をリセット（3段階の場合は中程度の2）
+  }
+
+  // 重要度に応じたうんこアイコンを取得
+  const getPoopIcon = (level: number) => {
+    switch (level) {
+      case 1:
+        return "💩"
+      case 2:
+        return "💩"
+      case 3:
+        return "💩"
+      default:
+        return "💩"
+    }
+  }
+
+  // 重要度のラベルを取得
+  const getImportanceLabel = (level: number) => {
+    switch (level) {
+      case 1:
+        return "低"
+      case 2:
+        return "中"
+      case 3:
+        return "高"
+      default:
+        return "中"
+    }
   }
 
   return (
@@ -121,6 +170,36 @@ function FavoriteTaskItem({ text }: { text: string }) {
               />
             </div>
           </div>
+
+          {/* 重要度選択UI（3段階） */}
+          <div className="mb-4">
+            <label className="modern-label">タスクの重要度</label>
+            <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+              <div className="flex space-x-3">
+                {[1, 2, 3].map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => setImportance(level)}
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex flex-col items-center justify-center transition-all ${
+                      importance === level
+                        ? "bg-[var(--header)] text-white scale-110 shadow-md"
+                        : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{level}</span>
+                    <span className="text-xs">{getImportanceLabel(level)}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="text-2xl ml-2">{getPoopIcon(importance)}</div>
+            </div>
+            <div className="text-xs text-gray-500 mt-1 flex justify-between">
+              <span>低い重要度</span>
+              <span>高い重要度</span>
+            </div>
+          </div>
+
           <div className="flex space-x-2">
             <button
               onClick={handleConfirmAdd}

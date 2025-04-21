@@ -9,6 +9,7 @@ export function AddTaskForm() {
   const [text, setText] = useState("")
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
+  const [importance, setImportance] = useState<number>(2) // デフォルトは中程度の重要度（3段階の場合は2）
   const [isFormOpen, setIsFormOpen] = useState(false)
   const { addTask } = useTodo()
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({
@@ -61,14 +62,43 @@ export function AddTaskForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (text.trim()) {
-      await addTask(text.trim(), startTime, endTime)
+      await addTask(text.trim(), startTime, endTime, importance)
       setText("")
       setStartTime("")
       setEndTime("")
+      setImportance(2) // 重要度をリセット（3段階の場合は中程度の2）
       setIsFormOpen(false)
 
       // ランダムな効果音を再生
       playRandomSound()
+    }
+  }
+
+  // 重要度に応じたうんこアイコンを取得
+  const getPoopIcon = (level: number) => {
+    switch (level) {
+      case 1:
+        return "💩"
+      case 2:
+        return "💩"
+      case 3:
+        return "💩"
+      default:
+        return "💩"
+    }
+  }
+
+  // 重要度のラベルを取得
+  const getImportanceLabel = (level: number) => {
+    switch (level) {
+      case 1:
+        return "低"
+      case 2:
+        return "中"
+      case 3:
+        return "高"
+      default:
+        return "中"
     }
   }
 
@@ -153,6 +183,35 @@ export function AddTaskForm() {
                   className="modern-input"
                   required
                 />
+              </div>
+            </div>
+
+            {/* 重要度選択UI（3段階） */}
+            <div>
+              <label className="modern-label">タスクの重要度</label>
+              <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                <div className="flex space-x-3 sm:space-x-4">
+                  {[1, 2, 3].map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => setImportance(level)}
+                      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center transition-all ${
+                        importance === level
+                          ? "bg-[var(--header)] text-white scale-110 shadow-md"
+                          : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                      }`}
+                    >
+                      <span className="text-sm sm:text-base font-medium">{level}</span>
+                      <span className="text-xs">{getImportanceLabel(level)}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="text-2xl ml-2">{getPoopIcon(importance)}</div>
+              </div>
+              <div className="text-xs text-gray-500 mt-1 flex justify-between">
+                <span>低い重要度</span>
+                <span>高い重要度</span>
               </div>
             </div>
 
