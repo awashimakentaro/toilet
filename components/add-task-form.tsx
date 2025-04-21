@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { useTodo } from "@/context/todo-context"
 import { fadeInFromBottom } from "@/lib/gsap-utils"
+import Image from "next/image"
 
 export function AddTaskForm() {
   const [text, setText] = useState("")
@@ -74,17 +75,29 @@ export function AddTaskForm() {
     }
   }
 
-  // 重要度に応じたうんこアイコンを取得
-  const getPoopIcon = (level: number) => {
+  // 重要度に応じた画像を取得
+  const getPoopImage = (level: number) => {
     switch (level) {
       case 1:
-        return "💩"
+        return {
+          src: "/lv1.png",
+          label: "低",
+        }
       case 2:
-        return "💩"
+        return {
+          src: "/lv2.png",
+          label: "中",
+        }
       case 3:
-        return "💩"
+        return {
+          src: "/lv3.png",
+          label: "高",
+        }
       default:
-        return "💩"
+        return {
+          src: "/lv2.png",
+          label: "中",
+        }
     }
   }
 
@@ -186,28 +199,38 @@ export function AddTaskForm() {
               </div>
             </div>
 
-            {/* 重要度選択UI（3段階） */}
+            {/* 重要度選択UI（3段階）- 画像を使用 */}
             <div>
               <label className="modern-label">タスクの重要度</label>
               <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
                 <div className="flex space-x-3 sm:space-x-4">
-                  {[1, 2, 3].map((level) => (
-                    <button
-                      key={level}
-                      type="button"
-                      onClick={() => setImportance(level)}
-                      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center transition-all ${
-                        importance === level
-                          ? "bg-[var(--header)] text-white scale-110 shadow-md"
-                          : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-                      }`}
-                    >
-                      <span className="text-sm sm:text-base font-medium">{level}</span>
-                      <span className="text-xs">{getImportanceLabel(level)}</span>
-                    </button>
-                  ))}
+                  {[1, 2, 3].map((level) => {
+                    const poopImage = getPoopImage(level)
+                    return (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={() => setImportance(level)}
+                        className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center transition-all ${
+                          importance === level
+                            ? "bg-[var(--header)] text-white scale-110 shadow-md"
+                            : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                        }`}
+                      >
+                        <div className="relative w-8 h-8 sm:w-10 sm:h-10">
+                          <Image
+                            src={poopImage.src || "/placeholder.svg"}
+                            alt={`重要度${level}`}
+                            fill
+                            className="object-contain"
+                            sizes="(max-width: 640px) 32px, 40px"
+                          />
+                        </div>
+                        <span className="text-xs mt-1">{getImportanceLabel(level)}</span>
+                      </button>
+                    )
+                  })}
                 </div>
-                <div className="text-2xl ml-2">{getPoopIcon(importance)}</div>
               </div>
               <div className="text-xs text-gray-500 mt-1 flex justify-between">
                 <span>低い重要度</span>

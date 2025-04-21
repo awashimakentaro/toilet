@@ -8,6 +8,7 @@ import { useTodo } from "@/context/todo-context"
 import { useState, useRef, useEffect } from "react"
 import { generatePoopAnalysis } from "@/lib/poop-analysis"
 import { fadeInFromBottom } from "@/lib/gsap-utils"
+import Image from "next/image"
 
 interface TaskItemProps {
   task: Task
@@ -100,48 +101,50 @@ export function TaskItem({ task, index }: TaskItemProps) {
   const timeDisplay =
     task.startTime && task.endTime ? `${formatTime(task.startTime)} 〜 ${formatTime(task.endTime)}` : ""
 
-  // 重要度に応じたうんこアイコンを取得（3段階）
-  const getImportanceIcon = () => {
+  // 重要度に応じた画像を取得（3段階）
+  const getImportanceImage = () => {
     if (!task.importance) return null
 
-    // 重要度に応じたうんこアイコンとスタイル（3段階）
-    const getPoopStyle = () => {
+    // 重要度に応じた画像とラベル（3段階）
+    const getPoopImage = () => {
       switch (task.importance) {
         case 1:
           return {
-            icon: "💩",
-            style: "opacity-40 scale-75",
+            src: "/lv1.png",
             label: "低",
           }
         case 2:
           return {
-            icon: "💩",
-            style: "opacity-70 scale-100",
+            src: "/lv2.png",
             label: "中",
           }
         case 3:
           return {
-            icon: "💩",
-            style: "opacity-100 scale-125",
+            src: "/lv3.png",
             label: "高",
           }
         default:
           return {
-            icon: "💩",
-            style: "opacity-70 scale-100",
+            src: "/lv2.png",
             label: "中",
           }
       }
     }
 
-    const poopStyle = getPoopStyle()
+    const poopImage = getPoopImage()
 
     return (
       <div className="flex flex-col items-center justify-center ml-2">
-        <div className={`text-2xl ${poopStyle.style} transition-all`} title={`重要度: ${poopStyle.label}`}>
-          {poopStyle.icon}
+        <div className="relative w-10 h-10 sm:w-12 sm:h-12" title={`重要度: ${poopImage.label}`}>
+          <Image
+            src={poopImage.src || "/placeholder.svg"}
+            alt={`重要度${task.importance}`}
+            fill
+            className="object-contain"
+            sizes="(max-width: 640px) 40px, 48px"
+          />
         </div>
-        <span className="text-xs text-gray-500">{poopStyle.label}</span>
+        <span className="text-xs text-gray-500">{poopImage.label}</span>
       </div>
     )
   }
@@ -186,8 +189,8 @@ export function TaskItem({ task, index }: TaskItemProps) {
               </div>
             )}
 
-            {/* 重要度アイコン表示 */}
-            {getImportanceIcon()}
+            {/* 重要度画像表示 */}
+            {getImportanceImage()}
           </div>
         </div>
 
