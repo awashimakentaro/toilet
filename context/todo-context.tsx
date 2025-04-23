@@ -166,7 +166,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
 
         // 期限切れタスクを履歴に保存
         for (const task of overdueTasks) {
-          await supabase.from("task_history").insert([
+          const { error } = await supabase.from("task_history").insert([
             {
               user_id: user.id,
               text: task.text,
@@ -179,11 +179,16 @@ export function TodoProvider({ children }: { children: ReactNode }) {
             },
           ])
 
+          if (error) {
+            console.error("履歴保存エラー:", error)
+            continue
+          }
+
           // タスクをデータベースから削除
           await supabase.from("tasks").delete().eq("id", task.id).eq("user_id", user.id)
         }
 
-        // 履歴を再取得
+        // 履歴を再取得（最新の状態に更新）
         await fetchTaskHistory(0)
 
         // ローカルのタスク状態を更新

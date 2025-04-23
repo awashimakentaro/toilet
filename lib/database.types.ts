@@ -88,6 +88,7 @@ export interface Database {
           end_time: string | null
           importance: number | null
           original_task_id: string | null
+          completed?: boolean
         }
         Insert: {
           id?: string
@@ -98,6 +99,7 @@ export interface Database {
           end_time?: string | null
           importance?: number | null
           original_task_id?: string | null
+          completed?: boolean
         }
         Update: {
           id?: string
@@ -108,6 +110,7 @@ export interface Database {
           end_time?: string | null
           importance?: number | null
           original_task_id?: string | null
+          completed?: boolean
         }
       }
     }

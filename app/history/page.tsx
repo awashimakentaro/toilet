@@ -229,6 +229,13 @@ function HistoryPage() {
   const completedTasks = taskHistory.filter((task) => task.completed !== false)
   const uncompletedTasks = taskHistory.filter((task) => task.completed === false)
 
+  // デバッグ用のログを追加（必要に応じて削除可能）
+  useEffect(() => {
+    console.log("履歴データ:", taskHistory)
+    console.log("完了タスク:", completedTasks)
+    console.log("未完了タスク:", uncompletedTasks)
+  }, [taskHistory, completedTasks, uncompletedTasks])
+
   useEffect(() => {
     if (titleRef.current) {
       slideInFromLeft(titleRef.current, 0.1)
