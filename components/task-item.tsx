@@ -280,7 +280,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
   }
 
   return (
-    <div ref={taskItemRef} className="relative mb-3 opacity-0 sm:mb-5">
+    <div ref={taskItemRef} className="relative mb-3 opacity-0 sm:mb-5 mx-3 sm:mx-6">
       {/* ドラッグ可能な部分 */}
       <div
         ref={setNodeRef}

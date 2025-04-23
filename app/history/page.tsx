@@ -94,7 +94,7 @@ function HistoryItem({ history, index, isCompleted = true }: { history: any; ind
   }
 
   return (
-    <div ref={itemRef} className="mb-3 opacity-0">
+    <div ref={itemRef} className="mb-3 opacity-0 mx-3 sm:mx-6">
       <div
         className={`modern-card p-3 sm:p-4 cursor-pointer hover:shadow-md transition-shadow ${
           !isCompleted ? "border-l-4 border-amber-500" : ""
@@ -246,7 +246,7 @@ function HistoryPage() {
   }, [])
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
+    <div className="max-w-2xl mx-auto px-6 sm:px-4">
       <Header />
 
       <div className="mb-8">

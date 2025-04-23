@@ -187,7 +187,7 @@ function FavoriteTaskItem({ text, index }: { text: string; index: number }) {
   }
 
   return (
-    <div ref={itemRef} className="modern-card p-5 mb-4 opacity-0">
+    <div ref={itemRef} className="modern-card p-5 mb-4 opacity-0 mx-3 sm:mx-6">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xl font-bold text-gray-800">{text}</h3>
         <button
@@ -379,7 +379,7 @@ function AddFavoriteForm() {
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="mb-8 opacity-0">
+    <form ref={formRef} onSubmit={handleSubmit} className="mb-8 opacity-0 mx-3 sm:mx-6">
       <div className="flex space-x-2">
         <input
           type="text"
@@ -422,7 +422,7 @@ function FavoritesPage() {
   }, [])
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
+    <div className="max-w-2xl mx-auto px-6 sm:px-4">
       <Header />
 
       <div className="mb-8">
