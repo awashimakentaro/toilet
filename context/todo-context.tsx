@@ -113,6 +113,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
               end_time: task.endTime || null,
               importance: task.importance || null,
               original_task_id: task.id,
+              completed: false, // 未完了フラグを設定
             },
           ])
         }
@@ -226,6 +227,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         endTime: item.end_time,
         importance: item.importance,
         originalTaskId: item.original_task_id,
+        completed: item.completed !== false, // 明示的にfalseでない場合はtrueとみなす
       }))
 
       if (page === 0) {
@@ -355,6 +357,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
           end_time: taskToFlush.endTime || null,
           importance: taskToFlush.importance || null,
           original_task_id: taskToFlush.id,
+          completed: true, // 完了フラグを設定
         },
       ])
 

@@ -10,7 +10,7 @@ import Image from "next/image"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 
-function HistoryItem({ history, index }: { history: any; index: number }) {
+function HistoryItem({ history, index, isCompleted = true }: { history: any; index: number; isCompleted?: boolean }) {
   const [showDetails, setShowDetails] = useState(false)
   const itemRef = useRef<HTMLDivElement>(null)
 
@@ -96,20 +96,27 @@ function HistoryItem({ history, index }: { history: any; index: number }) {
   return (
     <div ref={itemRef} className="mb-3 opacity-0">
       <div
-        className="modern-card p-3 sm:p-4 cursor-pointer hover:shadow-md transition-shadow"
+        className={`modern-card p-3 sm:p-4 cursor-pointer hover:shadow-md transition-shadow ${
+          !isCompleted ? "border-l-4 border-amber-500" : ""
+        }`}
         onClick={() => setShowDetails(!showDetails)}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="text-xl sm:text-2xl mr-2">🚽</div>
+            <div className="text-xl sm:text-2xl mr-2">{isCompleted ? "🚽" : "⏱️"}</div>
             <div>
               <h3 className="text-base sm:text-lg font-bold text-gray-800">{history.text}</h3>
-              <p className="text-xs sm:text-sm text-gray-500">{formatDate(history.completedAt)}</p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                {isCompleted ? "完了: " : "記録: "}
+                {formatDate(history.completedAt)}
+              </p>
             </div>
           </div>
           <div className="flex items-center">
             {timeDisplay && (
-              <div className="time-display-card mr-2 scale-90 sm:scale-100">
+              <div
+                className={`time-display-card mr-2 scale-90 sm:scale-100 ${!isCompleted ? "bg-amber-400" : "bg-gradient-to-r from-blue-400 to-blue-500"}`}
+              >
                 <div className="time-display-icon">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +133,10 @@ function HistoryItem({ history, index }: { history: any; index: number }) {
                     />
                   </svg>
                 </div>
-                <div className="time-display-text text-xs sm:text-sm">{timeDisplay}</div>
+                <div className="time-display-text text-xs sm:text-sm">
+                  {timeDisplay}
+                  {!isCompleted && <span className="ml-1 font-bold">未完了</span>}
+                </div>
               </div>
             )}
             {getImportanceImage(history.importance)}
@@ -152,7 +162,10 @@ function HistoryItem({ history, index }: { history: any; index: number }) {
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <span>完了日時: {formatDate(history.completedAt)}</span>
+                  <span>
+                    {isCompleted ? "完了日時: " : "記録日時: "}
+                    {formatDate(history.completedAt)}
+                  </span>
                 </div>
                 {timeDisplay && (
                   <div className="flex items-center sm:ml-4">
@@ -174,6 +187,27 @@ function HistoryItem({ history, index }: { history: any; index: number }) {
                   </div>
                 )}
               </div>
+              {!isCompleted && (
+                <div className="mt-2 text-xs sm:text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-3 w-3 sm:h-4 sm:w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span>このタスクは完了せずに日付が変わったため、自動的に記録されました。</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -184,11 +218,16 @@ function HistoryItem({ history, index }: { history: any; index: number }) {
 
 function HistoryPage() {
   const { taskHistory, isHistoryLoading, loadMoreHistory, isLoading } = useTodo()
+  const [activeTab, setActiveTab] = useState<"completed" | "uncompleted">("completed")
 
   // アニメーション用のref
   const titleRef = useRef<HTMLHeadingElement>(null)
   const descRef = useRef<HTMLParagraphElement>(null)
   const loadMoreRef = useRef<HTMLButtonElement>(null)
+
+  // 完了タスクと未完了タスクを分ける
+  const completedTasks = taskHistory.filter((task) => task.completed !== false)
+  const uncompletedTasks = taskHistory.filter((task) => task.completed === false)
 
   useEffect(() => {
     if (titleRef.current) {
@@ -205,10 +244,10 @@ function HistoryPage() {
 
       <div className="mb-8">
         <h2 ref={titleRef} className="text-3xl font-bold mb-2 text-gray-800 opacity-0">
-          完了した予定の履歴
+          予定の履歴
         </h2>
         <p ref={descRef} className="text-gray-600 opacity-0">
-          トイレに流した予定の履歴を確認できます。
+          トイレに流した予定と未完了だった予定の履歴を確認できます。
         </p>
       </div>
 
@@ -228,61 +267,105 @@ function HistoryPage() {
       ) : (
         <>
           {/* 統計情報コンポーネントを追加 */}
-          <HistoryStats taskHistory={taskHistory} />
+          <HistoryStats taskHistory={taskHistory} completedTasks={completedTasks} uncompletedTasks={uncompletedTasks} />
+
+          {/* タブ切り替え */}
+          <div className="flex mb-4 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab("completed")}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "completed"
+                  ? "bg-white text-[var(--header)] shadow-sm"
+                  : "text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              完了した予定 ({completedTasks.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("uncompleted")}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "uncompleted" ? "bg-white text-amber-500 shadow-sm" : "text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              未完了の予定 ({uncompletedTasks.length})
+            </button>
+          </div>
 
           <div className="space-y-0">
-            {taskHistory.map((history, index) => (
-              <HistoryItem key={history.id} history={history} index={index} />
-            ))}
+            {activeTab === "completed" ? (
+              completedTasks.length > 0 ? (
+                completedTasks.map((history, index) => (
+                  <HistoryItem key={history.id} history={history} index={index} isCompleted={true} />
+                ))
+              ) : (
+                <div className="text-center p-8 bg-white rounded-xl border border-gray-200 shadow-md">
+                  <div className="text-4xl mb-3">🚽</div>
+                  <h3 className="text-xl font-bold text-gray-700 mb-2">完了した予定がありません</h3>
+                  <p className="text-gray-500">タスクを完了してトイレに流すと、ここに表示されます</p>
+                </div>
+              )
+            ) : uncompletedTasks.length > 0 ? (
+              uncompletedTasks.map((history, index) => (
+                <HistoryItem key={history.id} history={history} index={index} isCompleted={false} />
+              ))
+            ) : (
+              <div className="text-center p-8 bg-white rounded-xl border border-gray-200 shadow-md">
+                <div className="text-4xl mb-3">⏱️</div>
+                <h3 className="text-xl font-bold text-gray-700 mb-2">未完了の予定がありません</h3>
+                <p className="text-gray-500">日付が変わった時に未完了だった予定がここに表示されます</p>
+              </div>
+            )}
 
             {/* さらに読み込むボタン */}
-            <div className="flex justify-center mt-6">
-              <button
-                ref={loadMoreRef}
-                onClick={loadMoreHistory}
-                disabled={isHistoryLoading}
-                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-              >
-                {isHistoryLoading ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
+            {activeTab === "completed" && completedTasks.length > 0 && (
+              <div className="flex justify-center mt-6">
+                <button
+                  ref={loadMoreRef}
+                  onClick={loadMoreHistory}
+                  disabled={isHistoryLoading}
+                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {isHistoryLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      読み込み中...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
                         stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    読み込み中...
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                    さらに読み込む
-                  </>
-                )}
-              </button>
-            </div>
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                      さらに読み込む
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}

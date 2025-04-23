@@ -9,9 +9,11 @@ import Image from "next/image"
 
 interface HistoryStatsProps {
   taskHistory: TaskHistory[]
+  completedTasks: TaskHistory[]
+  uncompletedTasks: TaskHistory[]
 }
 
-export function HistoryStats({ taskHistory }: HistoryStatsProps) {
+export function HistoryStats({ taskHistory, completedTasks, uncompletedTasks }: HistoryStatsProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const statsRef = useRef<HTMLDivElement>(null)
 
@@ -22,7 +24,7 @@ export function HistoryStats({ taskHistory }: HistoryStatsProps) {
   }, [])
 
   // 統計情報を計算
-  const stats = calculateStats(taskHistory)
+  const stats = calculateStats(taskHistory, completedTasks, uncompletedTasks)
 
   return (
     <div ref={statsRef} className="mb-6 opacity-0">
@@ -66,7 +68,7 @@ export function HistoryStats({ taskHistory }: HistoryStatsProps) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <StatCard
             title="完了タスク"
-            value={stats.totalTasks.toString()}
+            value={stats.completedCount.toString()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -80,22 +82,28 @@ export function HistoryStats({ taskHistory }: HistoryStatsProps) {
             }
           />
           <StatCard
-            title="平均重要度"
-            value={stats.averageImportance}
+            title="未完了タスク"
+            value={stats.uncompletedCount.toString()}
             icon={
-              <div className="relative w-6 h-6">
-                <Image
-                  src={`/lv${Math.round(Number.parseFloat(stats.averageImportance)) || 2}.png`}
-                  alt="平均重要度"
-                  fill
-                  className="object-contain"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
-              </div>
+              </svg>
             }
           />
           <StatCard
-            title="最多時間帯"
-            value={stats.mostCommonTimeRange}
+            title="完了率"
+            value={`${stats.completionRate}%`}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -108,7 +116,7 @@ export function HistoryStats({ taskHistory }: HistoryStatsProps) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
             }
@@ -138,6 +146,20 @@ export function HistoryStats({ taskHistory }: HistoryStatsProps) {
         {/* 詳細統計情報（展開時のみ表示） */}
         {isExpanded && (
           <div className="mt-4 pt-4 border-t border-gray-100 animate-fadeIn">
+            {/* 完了率の視覚化 */}
+            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg mb-4">
+              <h4 className="text-sm sm:text-base font-semibold mb-2 text-gray-700">完了率</h4>
+              <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="absolute top-0 left-0 h-full bg-green-500 rounded-l-full"
+                  style={{ width: `${stats.completionRate}%` }}
+                ></div>
+                <div className="absolute inset-0 flex items-center justify-center text-xs font-medium">
+                  {stats.completionRate}% 完了 ({stats.completedCount}/{stats.totalTasks})
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* 重要度分布 */}
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
@@ -166,6 +188,76 @@ export function HistoryStats({ taskHistory }: HistoryStatsProps) {
                 </div>
               </div>
 
+              {/* 完了・未完了の重要度比較 */}
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                <h4 className="text-sm sm:text-base font-semibold mb-2 text-gray-700">完了・未完了の重要度比較</h4>
+                <div className="flex items-end h-32 sm:h-40">
+                  {[1, 2, 3].map((level) => {
+                    const completedCount = stats.completedImportanceDistribution[level - 1] || 0
+                    const uncompletedCount = stats.uncompletedImportanceDistribution[level - 1] || 0
+                    const totalCount = completedCount + uncompletedCount
+                    const maxCount = Math.max(
+                      ...[1, 2, 3].map((l) => {
+                        return (
+                          (stats.completedImportanceDistribution[l - 1] || 0) +
+                          (stats.uncompletedImportanceDistribution[l - 1] || 0)
+                        )
+                      }),
+                    )
+                    const percentage = maxCount > 0 ? (totalCount / maxCount) * 100 : 0
+
+                    return (
+                      <div key={level} className="flex flex-col items-center flex-1">
+                        <div className="w-full px-1">
+                          <div className="relative" style={{ height: `${Math.max(percentage, 5)}%` }}>
+                            {/* 未完了部分 */}
+                            {uncompletedCount > 0 && (
+                              <div
+                                className="absolute bottom-0 w-full bg-amber-400 rounded-t-md"
+                                style={{
+                                  height: `${(uncompletedCount / totalCount) * 100}%`,
+                                  opacity: 0.8,
+                                }}
+                              ></div>
+                            )}
+                            {/* 完了部分 */}
+                            {completedCount > 0 && (
+                              <div
+                                className="absolute bottom-0 w-full bg-green-500 rounded-t-md"
+                                style={{
+                                  height: `${(completedCount / totalCount) * 100}%`,
+                                  top: `${(uncompletedCount / totalCount) * 100}%`,
+                                  opacity: 0.8,
+                                }}
+                              ></div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="mt-2 flex flex-col items-center">
+                          <div className="relative w-6 h-6 sm:w-8 sm:h-8">
+                            <Image src={`/lv${level}.png`} alt={`重要度${level}`} fill className="object-contain" />
+                          </div>
+                          <div className="flex flex-col text-xs mt-1">
+                            <span className="text-green-600">{completedCount}完</span>
+                            <span className="text-amber-600">{uncompletedCount}未</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="flex justify-center mt-2 text-xs">
+                  <div className="flex items-center mr-4">
+                    <div className="w-3 h-3 bg-green-500 mr-1 rounded-sm"></div>
+                    <span>完了</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-amber-400 mr-1 rounded-sm"></div>
+                    <span>未完了</span>
+                  </div>
+                </div>
+              </div>
+
               {/* 月別完了タスク */}
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                 <h4 className="text-sm sm:text-base font-semibold mb-2 text-gray-700">月別完了タスク</h4>
@@ -191,24 +283,44 @@ export function HistoryStats({ taskHistory }: HistoryStatsProps) {
                 </div>
               </div>
 
-              {/* 曜日別完了タスク */}
+              {/* 曜日別タスク分析 */}
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <h4 className="text-sm sm:text-base font-semibold mb-2 text-gray-700">曜日別完了タスク</h4>
+                <h4 className="text-sm sm:text-base font-semibold mb-2 text-gray-700">曜日別タスク分析</h4>
                 <div className="flex items-end h-32">
-                  {stats.dayOfWeekTasks.map((item, index) => {
-                    const maxCount = Math.max(...stats.dayOfWeekTasks.map((i) => i.count))
-                    const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0
+                  {stats.dayOfWeekAnalysis.map((item, index) => {
+                    const maxTotal = Math.max(...stats.dayOfWeekAnalysis.map((i) => i.completed + i.uncompleted))
+                    const percentage = maxTotal > 0 ? ((item.completed + item.uncompleted) / maxTotal) * 100 : 0
+                    const completedPercentage =
+                      item.completed + item.uncompleted > 0
+                        ? (item.completed / (item.completed + item.uncompleted)) * 100
+                        : 0
+
                     return (
                       <div key={index} className="flex flex-col items-center flex-1">
                         <div className="w-full px-1">
-                          <div
-                            className="bg-green-400 rounded-t-md"
-                            style={{ height: `${Math.max(percentage, 5)}%` }}
-                          ></div>
+                          <div className="relative" style={{ height: `${Math.max(percentage, 5)}%` }}>
+                            {/* 未完了部分 */}
+                            {item.uncompleted > 0 && (
+                              <div
+                                className="absolute bottom-0 w-full bg-amber-400 rounded-t-md"
+                                style={{ height: `${100 - completedPercentage}%` }}
+                              ></div>
+                            )}
+                            {/* 完了部分 */}
+                            {item.completed > 0 && (
+                              <div
+                                className="absolute bottom-0 w-full bg-green-500 rounded-t-md"
+                                style={{
+                                  height: `${completedPercentage}%`,
+                                }}
+                              ></div>
+                            )}
+                          </div>
                         </div>
                         <div className="mt-2 text-center">
                           <span className="text-xs">{item.day}</span>
-                          <span className="block text-xs">{item.count}件</span>
+                          <span className="block text-xs text-green-600">{item.completed}完</span>
+                          <span className="block text-xs text-amber-600">{item.uncompleted}未</span>
                         </div>
                       </div>
                     )
@@ -216,28 +328,80 @@ export function HistoryStats({ taskHistory }: HistoryStatsProps) {
                 </div>
               </div>
 
-              {/* 時間帯別完了タスク */}
+              {/* 時間帯別タスク分析 */}
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <h4 className="text-sm sm:text-base font-semibold mb-2 text-gray-700">時間帯別完了タスク</h4>
+                <h4 className="text-sm sm:text-base font-semibold mb-2 text-gray-700">時間帯別タスク分析</h4>
                 <div className="flex items-end h-32">
-                  {stats.timeRangeTasks.map((item, index) => {
-                    const maxCount = Math.max(...stats.timeRangeTasks.map((i) => i.count))
-                    const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0
+                  {stats.timeRangeAnalysis.map((item, index) => {
+                    const maxTotal = Math.max(...stats.timeRangeAnalysis.map((i) => i.completed + i.uncompleted))
+                    const percentage = maxTotal > 0 ? ((item.completed + item.uncompleted) / maxTotal) * 100 : 0
+                    const completedPercentage =
+                      item.completed + item.uncompleted > 0
+                        ? (item.completed / (item.completed + item.uncompleted)) * 100
+                        : 0
+
                     return (
                       <div key={index} className="flex flex-col items-center flex-1">
                         <div className="w-full px-1">
-                          <div
-                            className="bg-yellow-400 rounded-t-md"
-                            style={{ height: `${Math.max(percentage, 5)}%` }}
-                          ></div>
+                          <div className="relative" style={{ height: `${Math.max(percentage, 5)}%` }}>
+                            {/* 未完了部分 */}
+                            {item.uncompleted > 0 && (
+                              <div
+                                className="absolute bottom-0 w-full bg-amber-400 rounded-t-md"
+                                style={{ height: `${100 - completedPercentage}%` }}
+                              ></div>
+                            )}
+                            {/* 完了部分 */}
+                            {item.completed > 0 && (
+                              <div
+                                className="absolute bottom-0 w-full bg-green-500 rounded-t-md"
+                                style={{
+                                  height: `${completedPercentage}%`,
+                                }}
+                              ></div>
+                            )}
+                          </div>
                         </div>
                         <div className="mt-2 text-center">
                           <span className="text-xs">{item.range}</span>
-                          <span className="block text-xs">{item.count}件</span>
+                          <span className="block text-xs text-green-600">{item.completed}完</span>
+                          <span className="block text-xs text-amber-600">{item.uncompleted}未</span>
                         </div>
                       </div>
                     )
                   })}
+                </div>
+              </div>
+
+              {/* 未完了の理由分析 */}
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg col-span-1 sm:col-span-2">
+                <h4 className="text-sm sm:text-base font-semibold mb-2 text-gray-700">未完了タスクの傾向</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="bg-white p-3 rounded-lg border border-gray-100">
+                    <h5 className="text-xs font-medium text-gray-600 mb-1">最も未完了が多い時間帯</h5>
+                    <p className="text-lg font-bold text-amber-500">{stats.mostUncompletedTimeRange}</p>
+                    <p className="text-xs text-gray-500 mt-1">この時間帯の予定は完了率が低い傾向にあります</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-gray-100">
+                    <h5 className="text-xs font-medium text-gray-600 mb-1">最も未完了が多い曜日</h5>
+                    <p className="text-lg font-bold text-amber-500">{stats.mostUncompletedDayOfWeek}</p>
+                    <p className="text-xs text-gray-500 mt-1">この曜日は特に予定の完了が難しい傾向があります</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-gray-100">
+                    <h5 className="text-xs font-medium text-gray-600 mb-1">未完了の平均重要度</h5>
+                    <div className="flex items-center">
+                      <p className="text-lg font-bold text-amber-500">{stats.averageUncompletedImportance}</p>
+                      <div className="relative w-6 h-6 ml-2">
+                        <Image
+                          src={`/lv${Math.round(Number(stats.averageUncompletedImportance)) || 2}.png`}
+                          alt={`重要度${Math.round(Number(stats.averageUncompletedImportance))}`}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">未完了タスクの平均重要度です</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -266,26 +430,60 @@ function StatCard({ title, value, icon }: { title: string; value: string; icon: 
 }
 
 // 統計情報を計算する関数
-function calculateStats(taskHistory: TaskHistory[]) {
+function calculateStats(taskHistory: TaskHistory[], completedTasks: TaskHistory[], uncompletedTasks: TaskHistory[]) {
   // 基本統計
   const totalTasks = taskHistory.length
+  const completedCount = completedTasks.length
+  const uncompletedCount = uncompletedTasks.length
+  const completionRate = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0
 
-  // 重要度の平均を計算
-  let totalImportance = 0
-  let tasksWithImportance = 0
-  taskHistory.forEach((task) => {
+  // 重要度の平均を計算（完了タスク）
+  let totalCompletedImportance = 0
+  let completedTasksWithImportance = 0
+  completedTasks.forEach((task) => {
     if (task.importance) {
-      totalImportance += task.importance
-      tasksWithImportance++
+      totalCompletedImportance += task.importance
+      completedTasksWithImportance++
     }
   })
-  const averageImportance = tasksWithImportance > 0 ? (totalImportance / tasksWithImportance).toFixed(1) : "0.0"
+  const averageCompletedImportance =
+    completedTasksWithImportance > 0 ? (totalCompletedImportance / completedTasksWithImportance).toFixed(1) : "0.0"
+
+  // 重要度の平均を計算（未完了タスク）
+  let totalUncompletedImportance = 0
+  let uncompletedTasksWithImportance = 0
+  uncompletedTasks.forEach((task) => {
+    if (task.importance) {
+      totalUncompletedImportance += task.importance
+      uncompletedTasksWithImportance++
+    }
+  })
+  const averageUncompletedImportance =
+    uncompletedTasksWithImportance > 0
+      ? (totalUncompletedImportance / uncompletedTasksWithImportance).toFixed(1)
+      : "0.0"
 
   // 重要度分布（1-3）
   const importanceDistribution = [0, 0, 0] // インデックス0=重要度1, インデックス1=重要度2, インデックス2=重要度3
   taskHistory.forEach((task) => {
     if (task.importance && task.importance >= 1 && task.importance <= 3) {
       importanceDistribution[task.importance - 1]++
+    }
+  })
+
+  // 完了タスクの重要度分布
+  const completedImportanceDistribution = [0, 0, 0]
+  completedTasks.forEach((task) => {
+    if (task.importance && task.importance >= 1 && task.importance <= 3) {
+      completedImportanceDistribution[task.importance - 1]++
+    }
+  })
+
+  // 未完了タスクの重要度分布
+  const uncompletedImportanceDistribution = [0, 0, 0]
+  uncompletedTasks.forEach((task) => {
+    if (task.importance && task.importance >= 1 && task.importance <= 3) {
+      uncompletedImportanceDistribution[task.importance - 1]++
     }
   })
 
@@ -302,8 +500,8 @@ function calculateStats(taskHistory: TaskHistory[]) {
     monthlyTasksMap.set(monthKey, 0)
   }
 
-  // タスク履歴から月別のカウントを集計
-  taskHistory.forEach((task) => {
+  // タスク履歴から月別のカウントを集計（完了タスクのみ）
+  completedTasks.forEach((task) => {
     const date = new Date(task.completedAt)
     const monthKey = `${date.getFullYear()}-${date.getMonth()}`
     if (monthlyTasksMap.has(monthKey)) {
@@ -328,86 +526,105 @@ function calculateStats(taskHistory: TaskHistory[]) {
   const currentMonthKey = `${currentYear}-${currentMonth}`
   const tasksThisMonth = monthlyTasksMap.get(currentMonthKey) || 0
 
-  // 曜日別タスク数
+  // 曜日別タスク分析
   const dayNames = ["日", "月", "火", "水", "木", "金", "土"]
-  const dayOfWeekMap = new Map<number, number>()
+  const dayOfWeekAnalysis = dayNames.map((day) => ({ day, completed: 0, uncompleted: 0 }))
 
-  // 曜日ごとに初期化
-  for (let i = 0; i < 7; i++) {
-    dayOfWeekMap.set(i, 0)
-  }
-
-  // タスク履歴から曜日別のカウントを集計
-  taskHistory.forEach((task) => {
+  // 完了タスクの曜日別集計
+  completedTasks.forEach((task) => {
     const date = new Date(task.completedAt)
     const day = date.getDay() // 0=日曜日, 1=月曜日, ...
-    dayOfWeekMap.set(day, (dayOfWeekMap.get(day) || 0) + 1)
+    dayOfWeekAnalysis[day].completed++
   })
 
-  // 曜日別データを配列に変換
-  const dayOfWeekTasks = Array.from(dayOfWeekMap.entries()).map(([day, count]) => ({
-    day: dayNames[day],
-    count,
-  }))
+  // 未完了タスクの曜日別集計
+  uncompletedTasks.forEach((task) => {
+    const date = new Date(task.completedAt)
+    const day = date.getDay()
+    dayOfWeekAnalysis[day].uncompleted++
+  })
 
-  // 時間帯別タスク数
+  // 最も未完了が多い曜日を特定
+  let maxUncompletedDay = 0
+  let maxUncompletedDayCount = 0
+  dayOfWeekAnalysis.forEach((item, index) => {
+    if (item.uncompleted > maxUncompletedDayCount) {
+      maxUncompletedDayCount = item.uncompleted
+      maxUncompletedDay = index
+    }
+  })
+  const mostUncompletedDayOfWeek = maxUncompletedDayCount > 0 ? dayNames[maxUncompletedDay] : "なし"
+
+  // 時間帯別タスク分析
   const timeRanges = ["朝", "昼", "夕", "夜"]
-  const timeRangeMap = new Map<string, number>()
+  const timeRangeAnalysis = timeRanges.map((range) => ({ range, completed: 0, uncompleted: 0 }))
 
-  // 時間帯ごとに初期化
-  timeRanges.forEach((range) => {
-    timeRangeMap.set(range, 0)
-  })
-
-  // タスク履歴から時間帯別のカウントを集計
-  taskHistory.forEach((task) => {
+  // 完了タスクの時間帯別集計
+  completedTasks.forEach((task) => {
     if (task.startTime) {
       const hour = Number.parseInt(task.startTime.split(":")[0], 10)
-      let timeRange = ""
+      let timeRangeIndex = 0
 
       if (hour >= 5 && hour < 12) {
-        timeRange = "朝"
+        timeRangeIndex = 0 // 朝
       } else if (hour >= 12 && hour < 17) {
-        timeRange = "昼"
+        timeRangeIndex = 1 // 昼
       } else if (hour >= 17 && hour < 21) {
-        timeRange = "夕"
+        timeRangeIndex = 2 // 夕
       } else {
-        timeRange = "夜"
+        timeRangeIndex = 3 // 夜
       }
 
-      timeRangeMap.set(timeRange, (timeRangeMap.get(timeRange) || 0) + 1)
+      timeRangeAnalysis[timeRangeIndex].completed++
     }
   })
 
-  // 時間帯別データを配列に変換
-  const timeRangeTasks = timeRanges.map((range) => ({
-    range,
-    count: timeRangeMap.get(range) || 0,
-  }))
+  // 未完了タスクの時間帯別集計
+  uncompletedTasks.forEach((task) => {
+    if (task.startTime) {
+      const hour = Number.parseInt(task.startTime.split(":")[0], 10)
+      let timeRangeIndex = 0
 
-  // 最も多い時間帯
-  let mostCommonTimeRange = "なし"
-  let maxTimeRangeCount = 0
+      if (hour >= 5 && hour < 12) {
+        timeRangeIndex = 0 // 朝
+      } else if (hour >= 12 && hour < 17) {
+        timeRangeIndex = 1 // 昼
+      } else if (hour >= 17 && hour < 21) {
+        timeRangeIndex = 2 // 夕
+      } else {
+        timeRangeIndex = 3 // 夜
+      }
 
-  timeRangeTasks.forEach((item) => {
-    if (item.count > maxTimeRangeCount) {
-      maxTimeRangeCount = item.count
-      mostCommonTimeRange = item.range
+      timeRangeAnalysis[timeRangeIndex].uncompleted++
     }
   })
 
-  if (maxTimeRangeCount === 0) {
-    mostCommonTimeRange = "なし"
-  }
+  // 最も未完了が多い時間帯を特定
+  let maxUncompletedTimeRange = 0
+  let maxUncompletedTimeCount = 0
+  timeRangeAnalysis.forEach((item, index) => {
+    if (item.uncompleted > maxUncompletedTimeCount) {
+      maxUncompletedTimeCount = item.uncompleted
+      maxUncompletedTimeRange = index
+    }
+  })
+  const mostUncompletedTimeRange = maxUncompletedTimeCount > 0 ? timeRanges[maxUncompletedTimeRange] : "なし"
 
   return {
     totalTasks,
-    averageImportance,
+    completedCount,
+    uncompletedCount,
+    completionRate,
+    averageCompletedImportance,
+    averageUncompletedImportance,
     importanceDistribution,
+    completedImportanceDistribution,
+    uncompletedImportanceDistribution,
     monthlyTasks,
     tasksThisMonth,
-    dayOfWeekTasks,
-    timeRangeTasks,
-    mostCommonTimeRange,
+    dayOfWeekAnalysis,
+    timeRangeAnalysis,
+    mostUncompletedDayOfWeek,
+    mostUncompletedTimeRange,
   }
 }

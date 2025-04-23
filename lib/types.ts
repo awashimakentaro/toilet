@@ -15,6 +15,7 @@ export interface TaskHistory {
   endTime?: string
   importance?: number
   originalTaskId?: string
+  completed?: boolean // 完了したかどうかのフラグを追加
 }
 
 export interface Profile {
