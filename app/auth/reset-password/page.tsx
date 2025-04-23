@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
-import { Header } from "@/components/header"
+import { SimpleHeader } from "@/components/simple-header" // TodoProviderを必要としない単純なヘッダーを使用
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="max-w-md mx-auto p-4">
-      <Header />
+      <SimpleHeader />
       <div className="w-full max-w-md mx-auto">
         <form onSubmit={handleResetPassword} className="bg-[var(--card)] p-6 rounded-lg border-2 border-black">
           <h2 className="text-2xl font-bold mb-6 text-center">パスワードのリセット</h2>
