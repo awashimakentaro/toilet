@@ -198,6 +198,22 @@ body {
   }
 }
 
+/* 期限切れのタスク用のアニメーション */
+@keyframes overdue-pulse {
+  0%,
+  100% {
+    background-color: rgba(248, 113, 113, 0.9);
+  }
+  50% {
+    background-color: rgba(239, 68, 68, 0.7);
+  }
+}
+
+.time-display-card.animate-pulse {
+  animation: overdue-pulse 2s infinite;
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.6);
+}
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
@@ -435,15 +451,14 @@ body {
   margin-top: 4px;
 }
 
+/* 既存のtime-display-cardスタイルを修正 */
 .time-display-card {
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #4dabf7 0%, #3a8ee6 100%);
   color: white;
   padding: 6px 12px;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(74, 171, 247, 0.3);
-  animation: time-pulse 2s infinite;
   transition: all 0.3s ease;
   white-space: nowrap;
   flex-shrink: 0;
@@ -524,7 +539,7 @@ body {
   }
 }
 
-/* モバ��ル向けのスタイル調整 */
+/* モバイル向けのスタイル調整 */
 @media (max-width: 640px) {
   .time-display-text {
     font-size: 0.85rem;

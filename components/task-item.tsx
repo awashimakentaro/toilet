@@ -30,6 +30,9 @@ export function TaskItem({ task, index }: TaskItemProps) {
   const [editImportance, setEditImportance] = useState<number>(task.importance || 2)
   const [timeError, setTimeError] = useState<string | null>(null)
 
+  // TaskItemコンポーネントの中で、useState部分に以下を追加
+  const [isOverdue, setIsOverdue] = useState(false)
+
   // アニメーション用のref
   const taskItemRef = useRef<HTMLDivElement>(null)
 
@@ -49,6 +52,20 @@ export function TaskItem({ task, index }: TaskItemProps) {
     }
   }, [index])
 
+  // useEffectを追加（既存のuseEffectの後に追加）
+  useEffect(() => {
+    // 終了時間が設定されている場合のみチェック
+    if (task.endTime) {
+      // 初回チェック
+      checkIfOverdue()
+
+      // 1分ごとに終了時間をチェック
+      const intervalId = setInterval(checkIfOverdue, 60000)
+
+      return () => clearInterval(intervalId)
+    }
+  }, [task.endTime])
+
   // スタイルを最適化
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -59,6 +76,19 @@ export function TaskItem({ task, index }: TaskItemProps) {
     touchAction: "none", // タッチ操作を最適化
     WebkitTapHighlightColor: "transparent", // タップ時のハイライトを無効化
     transition: isDragging ? "none" : "all 0.2s ease", // ドラッグ中はトランジションを無効化
+  }
+
+  // 終了時間を過ぎているかチェックする関数
+  const checkIfOverdue = () => {
+    if (!task.endTime) return
+
+    const now = new Date()
+    const [hours, minutes] = task.endTime.split(":").map(Number)
+    const endTime = new Date()
+    endTime.setHours(hours, minutes, 0, 0)
+
+    // 現在時刻が終了時刻を過ぎているかチェック
+    setIsOverdue(now > endTime && !task.completed)
   }
 
   const handleAddToFavorites = (e: React.MouseEvent) => {
@@ -184,6 +214,9 @@ export function TaskItem({ task, index }: TaskItemProps) {
   const timeDisplay =
     task.startTime && task.endTime ? `${formatTime(task.startTime)} 〜 ${formatTime(task.endTime)}` : ""
 
+  // 終了時間を過ぎている場合のスタイルを追加
+  const timeDisplayStyle = isOverdue ? "bg-red-400 animate-pulse" : "bg-gradient-to-r from-blue-400 to-blue-500"
+
   // 重要度に応じた画像を取得（3段階）
   const getImportanceImage = (importance?: number) => {
     if (!importance) return null
@@ -256,7 +289,9 @@ export function TaskItem({ task, index }: TaskItemProps) {
         {...(isEditing ? {} : listeners)}
         className={`modern-card p-3 sm:p-5 flex flex-col ${
           isDragging ? "shadow-2xl scale-[1.02] z-50" : ""
-        } ${isDragging ? "" : "transition-all duration-200"}`}
+        } ${isDragging ? "" : "transition-all duration-200"} ${
+          isOverdue && !isEditing ? "border-l-4 border-red-500" : ""
+        }`}
       >
         {isEditing ? (
           // 編集モード
@@ -375,24 +410,39 @@ export function TaskItem({ task, index }: TaskItemProps) {
 
               <div className="flex items-center">
                 {timeDisplay && (
-                  <div className="time-display-card mr-2">
+                  <div className={`time-display-card mr-2 ${timeDisplayStyle}`}>
                     <div className="time-display-icon">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 sm:h-5 sm:w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                      {isOverdue ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 sm:h-5 sm:w-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 sm:h-5 sm:w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      )}
                     </div>
-                    <div className="time-display-text">{timeDisplay}</div>
+                    <div className="time-display-text">
+                      {timeDisplay}
+                      {isOverdue && <span className="ml-1 font-bold">期限切れ</span>}
+                    </div>
                   </div>
                 )}
 

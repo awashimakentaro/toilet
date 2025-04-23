@@ -24,6 +24,7 @@ interface TodoContextType {
   dismissReminder: (taskId: string) => void // リマインダーを閉じる関数
   editTask: (id: string, text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void>
   loadMoreHistory: () => Promise<void> // 履歴をさらに読み込む関数
+  resetDailyTasks: () => Promise<void> // 日付変更時のタスクリセット関数を追加
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
@@ -40,6 +41,103 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   const [notifiedTaskIds, setNotifiedTaskIds] = useState<Set<string>>(new Set()) // 既に通知を表示したタスクのID
   const { user } = useAuth()
   const [supabase, setSupabase] = useState<SupabaseClient<Database> | null>(null)
+  const [currentDate, setCurrentDate] = useState<string>(new Date().toDateString()) // 現在の日付を追跡
+
+  // 日付変更の検出とタスクリセット
+  useEffect(() => {
+    // 1分ごとに日付をチェック
+    const dateCheckInterval = setInterval(() => {
+      const now = new Date()
+      const todayString = now.toDateString()
+
+      // 日付が変わった場合（00:00を過ぎた場合）
+      if (currentDate !== todayString) {
+        console.log("日付が変わりました:", todayString)
+        setCurrentDate(todayString)
+        resetDailyTasks()
+      }
+    }, 60000) // 1分ごとにチェック
+
+    // コンポーネントのアンマウント時にインターバルをクリア
+    return () => clearInterval(dateCheckInterval)
+  }, [currentDate])
+
+  // アプリ起動時にも日付チェックを行う
+  useEffect(() => {
+    const checkDateOnStartup = async () => {
+      if (!user || !supabase) return
+
+      try {
+        // 最後のログイン日を取得（ローカルストレージから）
+        const lastLoginDate = localStorage.getItem(`last-login-date-${user.id}`) || ""
+        const today = new Date().toDateString()
+
+        // 最後のログインが昨日以前の場合、タスクをリセット
+        if (lastLoginDate !== today) {
+          console.log("前回のログインから日付が変わっています。タスクをリセットします。")
+          await resetDailyTasks()
+        }
+
+        // 今日の日付を保存
+        localStorage.setItem(`last-login-date-${user.id}`, today)
+      } catch (error) {
+        console.error("日付チェックエラー:", error)
+      }
+    }
+
+    checkDateOnStartup()
+  }, [user, supabase])
+
+  // 日付変更時のタスクリセット関数
+  const resetDailyTasks = async () => {
+    if (!supabase || !user) return
+
+    try {
+      console.log("タスクのリセットを開始します...")
+      setIsLoading(true)
+
+      // 未完了のタスクを履歴に保存（オプション）
+      const uncompletedTasks = tasks.filter((task) => !task.completed)
+
+      if (uncompletedTasks.length > 0) {
+        console.log(`${uncompletedTasks.length}件の未完了タスクを履歴に保存します`)
+
+        // 未完了タスクを履歴に保存
+        for (const task of uncompletedTasks) {
+          await supabase.from("task_history").insert([
+            {
+              user_id: user.id,
+              text: task.text,
+              completed_at: new Date().toISOString(),
+              start_time: task.startTime || null,
+              end_time: task.endTime || null,
+              importance: task.importance || null,
+              original_task_id: task.id,
+            },
+          ])
+        }
+
+        // 履歴を再取得
+        await fetchTaskHistory(0)
+      }
+
+      // すべてのタスクを削除
+      const { error } = await supabase.from("tasks").delete().eq("user_id", user.id)
+
+      if (error) throw error
+
+      // ローカルのタスク状態をクリア
+      setTasks([])
+      setReminderTasks([])
+      setNotifiedTaskIds(new Set())
+
+      console.log("タスクのリセットが完了しました")
+    } catch (error) {
+      console.error("タスクリセットエラー:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // クライアントサイドでのみSupabaseを初期化
   useEffect(() => {
@@ -439,6 +537,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         dismissReminder,
         editTask,
         loadMoreHistory,
+        resetDailyTasks,
       }}
     >
       {children}
