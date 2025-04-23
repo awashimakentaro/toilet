@@ -42,8 +42,8 @@ export function TaskItem({ task, index }: TaskItemProps) {
     data: {
       task,
     },
-    // 編集モード中はドラッグを無効化
-    disabled: isEditing,
+    // 編集モード中または期限切れの場合はドラッグを無効化
+    disabled: isEditing || isOverdue,
   })
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
   const style = {
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.5 : 1,
-    cursor: isEditing ? "default" : isDragging ? "grabbing" : "grab",
+    cursor: isEditing ? "default" : isOverdue ? "not-allowed" : isDragging ? "grabbing" : "grab",
     zIndex: isDragging ? 100 : "auto",
     boxShadow: isDragging ? "0 8px 20px rgba(0, 0, 0, 0.2)" : "none",
     touchAction: "none", // タッチ操作を最適化
@@ -285,13 +285,13 @@ export function TaskItem({ task, index }: TaskItemProps) {
       <div
         ref={setNodeRef}
         style={style}
-        {...(isEditing ? {} : attributes)}
-        {...(isEditing ? {} : listeners)}
+        {...(isEditing || isOverdue ? {} : attributes)}
+        {...(isEditing || isOverdue ? {} : listeners)}
         className={`modern-card p-3 sm:p-5 flex flex-col ${
           isDragging ? "shadow-2xl scale-[1.02] z-50" : ""
         } ${isDragging ? "" : "transition-all duration-200"} ${
           isOverdue && !isEditing ? "border-l-4 border-red-500" : ""
-        }`}
+        } ${isOverdue ? "opacity-80 bg-gray-50" : ""}`}
       >
         {isEditing ? (
           // 編集モード
@@ -455,7 +455,7 @@ export function TaskItem({ task, index }: TaskItemProps) {
             {!showAnalysis && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 rounded-lg pointer-events-none group-hover:bg-opacity-5 transition-all">
                 <p className="text-xs sm:text-sm text-white bg-black bg-opacity-70 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-                  ドラッグしてトイレに流す
+                  {isOverdue ? "期限切れのため完了できません" : "ドラッグしてトイレに流す"}
                 </p>
               </div>
             )}

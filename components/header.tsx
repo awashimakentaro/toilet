@@ -10,7 +10,7 @@ import { useTodo } from "@/context/todo-context"
 export function Header() {
   const pathname = usePathname()
   const { user } = useAuth()
-  const { resetDailyTasks } = useTodo()
+  const { resetDailyTasks, resetOverdueTasks } = useTodo()
   const [isResetting, setIsResetting] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
 
@@ -34,7 +34,7 @@ export function Header() {
   const handleConfirmReset = async () => {
     setIsResetting(true)
     try {
-      await resetDailyTasks()
+      await resetOverdueTasks()
       setShowResetConfirm(false)
     } catch (error) {
       console.error("リセットエラー:", error)
@@ -99,7 +99,7 @@ export function Header() {
                 onClick={handleResetClick}
                 className="px-4 sm:px-6 py-1.5 sm:py-2 rounded-full transition-all text-sm sm:text-base bg-red-100 text-red-600 hover:bg-red-200"
               >
-                リセット
+                期限切れ削除
               </button>
             )}
           </div>
@@ -110,9 +110,9 @@ export function Header() {
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-5 max-w-md w-full animate-fadeIn">
-            <h3 className="text-xl font-bold mb-3 text-gray-800">予定のリセット確認</h3>
+            <h3 className="text-xl font-bold mb-3 text-gray-800">期限切れタスクの削除確認</h3>
             <p className="text-gray-600 mb-4">
-              すべての予定をリセットしますか？未完了の予定は履歴に保存されます。この操作は元に戻せません。
+              期限切れのタスクをすべて削除しますか？削除されたタスクは履歴に未完了として保存されます。この操作は元に戻せません。
             </p>
             <div className="flex space-x-3">
               <button

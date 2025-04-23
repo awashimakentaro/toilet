@@ -25,6 +25,7 @@ interface TodoContextType {
   editTask: (id: string, text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void>
   loadMoreHistory: () => Promise<void> // 履歴をさらに読み込む関数
   resetDailyTasks: () => Promise<void> // 日付変更時のタスクリセット関数を追加
+  resetOverdueTasks: () => Promise<void> // 期限切れのタスクのみを削除する関数を追加
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
@@ -135,6 +136,74 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       console.log("タスクのリセットが完了しました")
     } catch (error) {
       console.error("タスクリセットエラー:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 期限切れのタスクのみを削除する関数
+  const resetOverdueTasks = async () => {
+    if (!supabase || !user) return
+
+    try {
+      console.log("期限切れタスクのリセットを開始します...")
+      setIsLoading(true)
+
+      // 期限切れのタスクを特定
+      const now = new Date()
+      const overdueTasks = tasks.filter((task) => {
+        if (!task.endTime) return false
+
+        const [hours, minutes] = task.endTime.split(":").map(Number)
+        const endTime = new Date()
+        endTime.setHours(hours, minutes, 0, 0)
+
+        return now > endTime && !task.completed
+      })
+
+      if (overdueTasks.length > 0) {
+        console.log(`${overdueTasks.length}件の期限切れタスクを履歴に保存します`)
+
+        // 期限切れタスクを履歴に保存
+        for (const task of overdueTasks) {
+          await supabase.from("task_history").insert([
+            {
+              user_id: user.id,
+              text: task.text,
+              completed_at: new Date().toISOString(),
+              start_time: task.startTime || null,
+              end_time: task.endTime || null,
+              importance: task.importance || null,
+              original_task_id: task.id,
+              completed: false, // 未完了フラグを設定
+            },
+          ])
+
+          // タスクをデータベースから削除
+          await supabase.from("tasks").delete().eq("id", task.id).eq("user_id", user.id)
+        }
+
+        // 履歴を再取得
+        await fetchTaskHistory(0)
+
+        // ローカルのタスク状態を更新
+        setTasks(tasks.filter((task) => !overdueTasks.some((overdueTask) => overdueTask.id === task.id)))
+
+        // リマインダーからも削除
+        const overdueTaskIds = new Set(overdueTasks.map((task) => task.id))
+        setReminderTasks(reminderTasks.filter((task) => !overdueTaskIds.has(task.id)))
+
+        // 通知済みリストからも削除
+        const newNotifiedTaskIds = new Set(notifiedTaskIds)
+        overdueTaskIds.forEach((id) => newNotifiedTaskIds.delete(id))
+        setNotifiedTaskIds(newNotifiedTaskIds)
+
+        console.log("期限切れタスクのリセットが完了しました")
+      } else {
+        console.log("期限切れのタスクはありません")
+      }
+    } catch (error) {
+      console.error("期限切れタスクのリセットエラー:", error)
     } finally {
       setIsLoading(false)
     }
@@ -541,6 +610,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         editTask,
         loadMoreHistory,
         resetDailyTasks,
+        resetOverdueTasks,
       }}
     >
       {children}
