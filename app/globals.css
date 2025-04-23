@@ -524,7 +524,7 @@ body {
   }
 }
 
-/* モバイル向けのスタイル調整 */
+/* モバ��ル向けのスタイル調整 */
 @media (max-width: 640px) {
   .time-display-text {
     font-size: 0.85rem;

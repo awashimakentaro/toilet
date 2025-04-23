@@ -8,8 +8,15 @@ import { ProtectedRoute } from "@/components/auth/protected-route"
 import { fadeInFromBottom, slideInFromLeft } from "@/lib/gsap-utils"
 import Image from "next/image"
 
-function FavoriteTaskItem({ text }: { text: string }) {
+function FavoriteTaskItem({ text, index }: { text: string; index: number }) {
   const { removeFromFavorites, addFavoriteToTasks } = useTodo()
+  const itemRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (itemRef.current) {
+      fadeInFromBottom(itemRef.current, 0.2 + index * 0.05)
+    }
+  }, [index])
   const [showTimeForm, setShowTimeForm] = useState(false)
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
@@ -180,7 +187,7 @@ function FavoriteTaskItem({ text }: { text: string }) {
   }
 
   return (
-    <div className="modern-card p-5 mb-4">
+    <div ref={itemRef} className="modern-card p-5 mb-4 opacity-0">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xl font-bold text-gray-800">{text}</h3>
         <button
@@ -444,8 +451,8 @@ function FavoritesPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {favoriteTasks.map((task) => (
-            <FavoriteTaskItem key={task} text={task} />
+          {favoriteTasks.map((task, index) => (
+            <FavoriteTaskItem key={task} text={task} index={index} />
           ))}
         </div>
       )}
