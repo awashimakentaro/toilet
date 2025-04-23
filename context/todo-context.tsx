@@ -7,6 +7,7 @@ import { useAuth } from "./auth-context"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/database.types"
 
+// TodoContextTypeインターフェースに編集機能を追加
 interface TodoContextType {
   tasks: Task[]
   favoriteTasks: string[]
@@ -20,6 +21,7 @@ interface TodoContextType {
   addFavoriteToTasks: (text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void>
   reminderTasks: Task[] // リマインダーが必要なタスク
   dismissReminder: (taskId: string) => void // リマインダーを閉じる関数
+  editTask: (id: string, text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void> // タスク編集機能を追加
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
@@ -287,6 +289,46 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     setReminderTasks((prev) => prev.filter((task) => task.id !== taskId))
   }
 
+  // TodoProviderコンポーネント内に編集機能を追加（returnステートメントの前に追加）
+  // タスクを編集
+  const editTask = async (id: string, text: string, startTime?: string, endTime?: string, importance?: number) => {
+    if (!supabase || !user) return
+
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({
+          text,
+          start_time: startTime || null,
+          end_time: endTime || null,
+          importance: importance || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("user_id", user.id)
+
+      if (error) throw error
+
+      // ローカルのタスク状態を更新
+      setTasks(
+        tasks.map((task) =>
+          task.id === id
+            ? {
+                ...task,
+                text,
+                startTime,
+                endTime,
+                importance,
+              }
+            : task,
+        ),
+      )
+    } catch (error) {
+      console.error("タスク編集エラー:", error)
+    }
+  }
+
+  // TodoContextのvalueに編集機能を追加
   return (
     <TodoContext.Provider
       value={{
@@ -302,6 +344,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         addFavoriteToTasks,
         reminderTasks,
         dismissReminder,
+        editTask, // 編集機能を追加
       }}
     >
       {children}
