@@ -1,17 +1,18 @@
 "use client"
 
 import { createContext, useState, useContext, type ReactNode, useEffect } from "react"
-import type { Task } from "@/lib/types"
+import type { Task, TaskHistory } from "@/lib/types"
 import { getSupabaseClient } from "@/lib/supabase"
 import { useAuth } from "./auth-context"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/database.types"
 
-// TodoContextTypeインターフェースに編集機能を追加
 interface TodoContextType {
   tasks: Task[]
   favoriteTasks: string[]
+  taskHistory: TaskHistory[] // 履歴を追加
   isLoading: boolean
+  isHistoryLoading: boolean // 履歴読み込み状態を追加
   addTask: (text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void>
   toggleTask: (id: string) => Promise<void>
   deleteTask: (id: string) => Promise<void>
@@ -21,7 +22,8 @@ interface TodoContextType {
   addFavoriteToTasks: (text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void>
   reminderTasks: Task[] // リマインダーが必要なタスク
   dismissReminder: (taskId: string) => void // リマインダーを閉じる関数
-  editTask: (id: string, text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void> // タスク編集機能を追加
+  editTask: (id: string, text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void>
+  loadMoreHistory: () => Promise<void> // 履歴をさらに読み込む関数
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
@@ -29,7 +31,11 @@ const TodoContext = createContext<TodoContextType | undefined>(undefined)
 export function TodoProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [favoriteTasks, setFavoriteTasks] = useState<string[]>([])
+  const [taskHistory, setTaskHistory] = useState<TaskHistory[]>([]) // 履歴の状態を追加
   const [isLoading, setIsLoading] = useState(true)
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false) // 履歴読み込み状態
+  const [historyPage, setHistoryPage] = useState(0) // ページネーション用
+  const [hasMoreHistory, setHasMoreHistory] = useState(true) // さらに履歴があるかどうか
   const [reminderTasks, setReminderTasks] = useState<Task[]>([]) // リマインダーが必要なタスク
   const [notifiedTaskIds, setNotifiedTaskIds] = useState<Set<string>>(new Set()) // 既に通知を表示したタスクのID
   const { user } = useAuth()
@@ -45,6 +51,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     if (!supabase || !user) {
       setTasks([])
       setFavoriteTasks([])
+      setTaskHistory([])
       setIsLoading(false)
       return
     }
@@ -70,6 +77,9 @@ export function TodoProvider({ children }: { children: ReactNode }) {
 
         if (favoritesError) throw favoritesError
 
+        // 履歴を取得（最新の10件）
+        await fetchTaskHistory()
+
         setTasks(
           tasksData.map((task) => ({
             id: task.id,
@@ -91,6 +101,61 @@ export function TodoProvider({ children }: { children: ReactNode }) {
 
     fetchTasks()
   }, [user, supabase])
+
+  // 履歴を取得する関数
+  const fetchTaskHistory = async (page = 0) => {
+    if (!supabase || !user) return
+
+    const pageSize = 10 // 1ページあたりの件数
+    const offset = page * pageSize
+
+    setIsHistoryLoading(true)
+    try {
+      const { data, error, count } = await supabase
+        .from("task_history")
+        .select("*", { count: "exact" })
+        .eq("user_id", user.id)
+        .order("completed_at", { ascending: false })
+        .range(offset, offset + pageSize - 1)
+
+      if (error) throw error
+
+      const formattedHistory: TaskHistory[] = data.map((item) => ({
+        id: item.id,
+        text: item.text,
+        completedAt: item.completed_at,
+        startTime: item.start_time,
+        endTime: item.end_time,
+        importance: item.importance,
+        originalTaskId: item.original_task_id,
+      }))
+
+      if (page === 0) {
+        setTaskHistory(formattedHistory)
+      } else {
+        setTaskHistory((prev) => [...prev, ...formattedHistory])
+      }
+
+      // さらに履歴があるかどうかを確認
+      if (count) {
+        setHasMoreHistory(offset + pageSize < count)
+      } else {
+        setHasMoreHistory(formattedHistory.length === pageSize)
+      }
+
+      setHistoryPage(page)
+    } catch (error) {
+      console.error("履歴取得エラー:", error)
+    } finally {
+      setIsHistoryLoading(false)
+    }
+  }
+
+  // さらに履歴を読み込む関数
+  const loadMoreHistory = async () => {
+    if (isHistoryLoading || !hasMoreHistory) return
+    await fetchTaskHistory(historyPage + 1)
+  }
 
   // タスクを追加
   const addTask = async (text: string, startTime?: string, endTime?: string, importance?: number) => {
@@ -174,11 +239,39 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // タスクを流す（アニメーション後に削除）
+  // タスクを流す（履歴に保存してから削除）
   const flushTask = async (id: string) => {
-    setTimeout(() => {
-      deleteTask(id)
-    }, 1000)
+    if (!supabase || !user) return
+
+    const taskToFlush = tasks.find((task) => task.id === id)
+    if (!taskToFlush) return
+
+    try {
+      // 履歴に保存
+      const { error: historyError } = await supabase.from("task_history").insert([
+        {
+          user_id: user.id,
+          text: taskToFlush.text,
+          completed_at: new Date().toISOString(),
+          start_time: taskToFlush.startTime || null,
+          end_time: taskToFlush.endTime || null,
+          importance: taskToFlush.importance || null,
+          original_task_id: taskToFlush.id,
+        },
+      ])
+
+      if (historyError) throw historyError
+
+      // 履歴を再取得（最新の状態に更新）
+      await fetchTaskHistory(0)
+
+      // タスクを削除（少し遅延させる）
+      setTimeout(() => {
+        deleteTask(id)
+      }, 1000)
+    } catch (error) {
+      console.error("タスク履歴保存エラー:", error)
+    }
   }
 
   // お気に入りタスクを追加
@@ -289,7 +382,6 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     setReminderTasks((prev) => prev.filter((task) => task.id !== taskId))
   }
 
-  // TodoProviderコンポーネント内に編集機能を追加（returnステートメントの前に追加）
   // タスクを編集
   const editTask = async (id: string, text: string, startTime?: string, endTime?: string, importance?: number) => {
     if (!supabase || !user) return
@@ -328,13 +420,14 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // TodoContextのvalueに編集機能を追加
   return (
     <TodoContext.Provider
       value={{
         tasks,
         favoriteTasks,
+        taskHistory,
         isLoading,
+        isHistoryLoading,
         addTask,
         toggleTask,
         deleteTask,
@@ -344,7 +437,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         addFavoriteToTasks,
         reminderTasks,
         dismissReminder,
-        editTask, // 編集機能を追加
+        editTask,
+        loadMoreHistory,
       }}
     >
       {children}

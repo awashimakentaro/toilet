@@ -31,7 +31,7 @@ export function Header() {
           className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 flex items-center justify-center opacity-0"
         >
           <span className="mr-2 text-3xl sm:text-4xl">💩</span>
-          フラッシュ
+          うんこフラッシュ
         </h1>
         <p className="text-center text-white/80 font-medium text-sm sm:text-base">タスクを完了してスッキリしよう！</p>
       </div>
@@ -59,6 +59,16 @@ export function Header() {
               }`}
             >
               よく使う予定
+            </Link>
+            <Link
+              href="/history"
+              className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-full transition-all text-sm sm:text-base ${
+                pathname === "/history"
+                  ? "bg-[var(--header)] text-white font-medium shadow-md"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              履歴
             </Link>
           </div>
         </nav>

@@ -7,6 +7,16 @@ export interface Task {
   importance?: number // 重要度（1-5）
 }
 
+export interface TaskHistory {
+  id: string
+  text: string
+  completedAt: string // 完了日時
+  startTime?: string
+  endTime?: string
+  importance?: number
+  originalTaskId?: string
+}
+
 export interface Profile {
   id: string
   username: string
