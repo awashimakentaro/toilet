@@ -487,7 +487,7 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   transform: scale(1.02);
   z-index: 100;
-  will-change: transform; /* パフォーマンス最適化 */
+  will-change: transform; /* パフォーマンス���適化 */
   touch-action: none; /* タッチ操作の最適化 */
 }
 

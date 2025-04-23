@@ -3,16 +3,12 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/context/auth-context"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { slideInFromLeft, slideInFromRight } from "@/lib/gsap-utils"
-import { useTodo } from "@/context/todo-context"
 
 export function Header() {
   const pathname = usePathname()
   const { user } = useAuth()
-  const { resetDailyTasks, resetOverdueTasks } = useTodo()
-  const [isResetting, setIsResetting] = useState(false)
-  const [showResetConfirm, setShowResetConfirm] = useState(false)
 
   // アニメーション用のref
   const titleRef = useRef<HTMLHeadingElement>(null)
@@ -26,26 +22,6 @@ export function Header() {
       slideInFromRight(navRef.current, 0.4)
     }
   }, [])
-
-  const handleResetClick = () => {
-    setShowResetConfirm(true)
-  }
-
-  const handleConfirmReset = async () => {
-    setIsResetting(true)
-    try {
-      await resetOverdueTasks()
-      setShowResetConfirm(false)
-    } catch (error) {
-      console.error("リセットエラー:", error)
-    } finally {
-      setIsResetting(false)
-    }
-  }
-
-  const handleCancelReset = () => {
-    setShowResetConfirm(false)
-  }
 
   return (
     <header className="bg-white rounded-2xl shadow-lg mb-4 sm:mb-8 overflow-hidden">
@@ -94,70 +70,8 @@ export function Header() {
             >
               履歴
             </Link>
-            {pathname === "/" && (
-              <button
-                onClick={handleResetClick}
-                className="px-4 sm:px-6 py-1.5 sm:py-2 rounded-full transition-all text-sm sm:text-base bg-red-100 text-red-600 hover:bg-red-200"
-              >
-                期限切れ削除
-              </button>
-            )}
           </div>
         </nav>
-      )}
-
-      {/* リセット確認モーダル */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-5 max-w-md w-full animate-fadeIn">
-            <h3 className="text-xl font-bold mb-3 text-gray-800">期限切れタスクの削除確認</h3>
-            <p className="text-gray-600 mb-4">
-              期限切れのタスクをすべて削除しますか？削除されたタスクは履歴に未完了として保存されます。この操作は元に戻せません。
-            </p>
-            <div className="flex space-x-3">
-              <button
-                onClick={handleConfirmReset}
-                disabled={isResetting}
-                className="flex-1 py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
-              >
-                {isResetting ? (
-                  <div className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    リセット中...
-                  </div>
-                ) : (
-                  "リセットする"
-                )}
-              </button>
-              <button
-                onClick={handleCancelReset}
-                disabled={isResetting}
-                className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
-              >
-                キャンセル
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </header>
   )

@@ -241,7 +241,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
 
         if (tasksError) throw tasksError
 
-        // お気に入りタスクを取得
+        // お気に入りタスクを��得
         const { data: favoritesData, error: favoritesError } = await supabase
           .from("favorite_tasks")
           .select("text")
