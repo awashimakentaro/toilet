@@ -14,6 +14,7 @@ function FavoriteTaskItem({ text }: { text: string }) {
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
   const [importance, setImportance] = useState<number>(2) // デフォルトは中程度の重要度（3段階の場合は2）
+  const [timeError, setTimeError] = useState<string | null>(null) // 時間エラー用の状態を追加
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({
     poop: null,
     po: null,
@@ -48,6 +49,12 @@ function FavoriteTaskItem({ text }: { text: string }) {
     }
   }
 
+  // 時間を分に変換するヘルパー関数を追加
+  const convertTimeToMinutes = (timeString: string): number => {
+    const [hours, minutes] = timeString.split(":").map(Number)
+    return hours * 60 + minutes
+  }
+
   const handleAddToTasks = async () => {
     if (!showTimeForm) {
       // フォームを表示する
@@ -62,6 +69,20 @@ function FavoriteTaskItem({ text }: { text: string }) {
   }
 
   const handleConfirmAdd = async () => {
+    // 時間のバリデーション
+    if (startTime && endTime) {
+      // 時間を比較するために数値に変換
+      const startMinutes = convertTimeToMinutes(startTime)
+      const endMinutes = convertTimeToMinutes(endTime)
+
+      if (endMinutes <= startMinutes) {
+        setTimeError("終了時刻は開始時刻より後に設定してください")
+        return
+      }
+    }
+
+    setTimeError(null) // エラーをクリア
+
     await addFavoriteToTasks(text, startTime, endTime, importance)
     setShowTimeForm(false)
     setStartTime("")
@@ -69,6 +90,37 @@ function FavoriteTaskItem({ text }: { text: string }) {
     setImportance(2) // 重要度をリセット（3段階の場合は中程度の2）
     // ランダムな効果音を再生
     playRandomSound()
+  }
+
+  // 時間入力フィールドの変更ハンドラを追加
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartTime(e.target.value)
+    // 終了時間が既に入力されている場合は検証
+    if (endTime) {
+      const startMinutes = convertTimeToMinutes(e.target.value)
+      const endMinutes = convertTimeToMinutes(endTime)
+
+      if (endMinutes <= startMinutes) {
+        setTimeError("終了時刻は開始時刻より後に設定してください")
+      } else {
+        setTimeError(null)
+      }
+    }
+  }
+
+  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndTime(e.target.value)
+    // 開始時間が既に入力されている場合は検証
+    if (startTime) {
+      const startMinutes = convertTimeToMinutes(startTime)
+      const endMinutes = convertTimeToMinutes(e.target.value)
+
+      if (endMinutes <= startMinutes) {
+        setTimeError("終了時刻は開始時刻より後に設定してください")
+      } else {
+        setTimeError(null)
+      }
+    }
   }
 
   const handleAddWithoutTime = async () => {
@@ -164,7 +216,7 @@ function FavoriteTaskItem({ text }: { text: string }) {
                 id={`start-time-${text}`}
                 type="time"
                 value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                onChange={handleStartTimeChange}
                 className="modern-input"
                 required
               />
@@ -177,12 +229,15 @@ function FavoriteTaskItem({ text }: { text: string }) {
                 id={`end-time-${text}`}
                 type="time"
                 value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
+                onChange={handleEndTimeChange}
                 className="modern-input"
                 required
               />
             </div>
           </div>
+
+          {/* 時間エラーメッセージ */}
+          {timeError && <div className="text-red-500 text-sm mt-1 mb-3">{timeError}</div>}
 
           {/* 重要度選択UI（3段階） */}
           <div className="mb-4">

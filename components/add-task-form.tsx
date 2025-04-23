@@ -12,6 +12,7 @@ export function AddTaskForm() {
   const [endTime, setEndTime] = useState("")
   const [importance, setImportance] = useState<number>(2) // デフォルトは中程度の重要度（3段階の場合は2）
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [timeError, setTimeError] = useState<string | null>(null) // 時間エラー用の状態を追加
   const { addTask } = useTodo()
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({
     poop: null,
@@ -62,6 +63,21 @@ export function AddTaskForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // 時間のバリデーション
+    if (startTime && endTime) {
+      // 時間を比較するために数値に変換
+      const startMinutes = convertTimeToMinutes(startTime)
+      const endMinutes = convertTimeToMinutes(endTime)
+
+      if (endMinutes <= startMinutes) {
+        setTimeError("終了時刻は開始時刻より後に設定してください")
+        return
+      }
+    }
+
+    setTimeError(null) // エラーをクリア
+
     if (text.trim()) {
       await addTask(text.trim(), startTime, endTime, importance)
       setText("")
@@ -72,6 +88,43 @@ export function AddTaskForm() {
 
       // ランダムな効果音を再生
       playRandomSound()
+    }
+  }
+
+  // 時間を分に変換するヘルパー関数を追加
+  const convertTimeToMinutes = (timeString: string): number => {
+    const [hours, minutes] = timeString.split(":").map(Number)
+    return hours * 60 + minutes
+  }
+
+  // 時間入力フィールドの変更ハンドラを修正
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartTime(e.target.value)
+    // 終了時間が既に入力されている場合は検証
+    if (endTime) {
+      const startMinutes = convertTimeToMinutes(e.target.value)
+      const endMinutes = convertTimeToMinutes(endTime)
+
+      if (endMinutes <= startMinutes) {
+        setTimeError("終了時刻は開始時刻より後に設定してください")
+      } else {
+        setTimeError(null)
+      }
+    }
+  }
+
+  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndTime(e.target.value)
+    // 開始時間が既に入力されている場合は検証
+    if (startTime) {
+      const startMinutes = convertTimeToMinutes(startTime)
+      const endMinutes = convertTimeToMinutes(e.target.value)
+
+      if (endMinutes <= startMinutes) {
+        setTimeError("終了時刻は開始時刻より後に設定してください")
+      } else {
+        setTimeError(null)
+      }
     }
   }
 
@@ -179,7 +232,7 @@ export function AddTaskForm() {
                   id="start-time"
                   type="time"
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
+                  onChange={handleStartTimeChange}
                   className="modern-input"
                   required
                 />
@@ -192,12 +245,15 @@ export function AddTaskForm() {
                   id="end-time"
                   type="time"
                   value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
+                  onChange={handleEndTimeChange}
                   className="modern-input"
                   required
                 />
               </div>
             </div>
+
+            {/* 時間エラーメッセージ */}
+            {timeError && <div className="text-red-500 text-sm mt-1">{timeError}</div>}
 
             {/* 重要度選択UI（3段階）- 画像を使用 */}
             <div>
