@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useState, useContext, type ReactNode, useEffect } from "react"
-import type { Task, TaskHistory } from "@/lib/types"
+import type { Task, TaskHistory, FavoriteTask } from "@/lib/types"
 import { getSupabaseClient } from "@/lib/supabase"
 import { useAuth } from "./auth-context"
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -9,40 +9,40 @@ import type { Database } from "@/lib/database.types"
 
 interface TodoContextType {
   tasks: Task[]
-  favoriteTasks: string[]
-  taskHistory: TaskHistory[] // 履歴を追加
+  favoriteTasks: FavoriteTask[] // 型を変更
+  taskHistory: TaskHistory[]
   isLoading: boolean
-  isHistoryLoading: boolean // 履歴読み込み状態を追加
+  isHistoryLoading: boolean
   addTask: (text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void>
   toggleTask: (id: string) => Promise<void>
   deleteTask: (id: string) => Promise<void>
   flushTask: (id: string) => Promise<void>
-  addToFavorites: (text: string) => Promise<void>
-  removeFromFavorites: (text: string) => Promise<void>
-  addFavoriteToTasks: (text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void>
-  reminderTasks: Task[] // リマインダーが必要なタスク
-  dismissReminder: (taskId: string) => void // リマインダーを閉じる関数
+  addToFavorites: (text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void> // 引数を追加
+  removeFromFavorites: (id: string) => Promise<void> // IDで削除するように変更
+  addFavoriteToTasks: (favoriteTask: FavoriteTask) => Promise<void> // 引数を変更
+  reminderTasks: Task[]
+  dismissReminder: (taskId: string) => void
   editTask: (id: string, text: string, startTime?: string, endTime?: string, importance?: number) => Promise<void>
-  loadMoreHistory: () => Promise<void> // 履歴をさらに読み込む関数
-  resetDailyTasks: () => Promise<void> // 日付変更時のタスクリセット関数を追加
-  resetOverdueTasks: () => Promise<void> // 期限切れのタスクのみを削除する関数を追加
+  loadMoreHistory: () => Promise<void>
+  resetDailyTasks: () => Promise<void>
+  resetOverdueTasks: () => Promise<void>
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
 
 export function TodoProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([])
-  const [favoriteTasks, setFavoriteTasks] = useState<string[]>([])
-  const [taskHistory, setTaskHistory] = useState<TaskHistory[]>([]) // 履歴の状態を追加
+  const [favoriteTasks, setFavoriteTasks] = useState<FavoriteTask[]>([])
+  const [taskHistory, setTaskHistory] = useState<TaskHistory[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isHistoryLoading, setIsHistoryLoading] = useState(false) // 履歴読み込み状態
-  const [historyPage, setHistoryPage] = useState(0) // ページネーション用
-  const [hasMoreHistory, setHasMoreHistory] = useState(true) // さらに履歴があるかどうか
-  const [reminderTasks, setReminderTasks] = useState<Task[]>([]) // リマインダーが必要なタスク
-  const [notifiedTaskIds, setNotifiedTaskIds] = useState<Set<string>>(new Set()) // 既に通知を表示したタスクのID
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false)
+  const [historyPage, setHistoryPage] = useState(0)
+  const [hasMoreHistory, setHasMoreHistory] = useState(true)
+  const [reminderTasks, setReminderTasks] = useState<Task[]>([])
+  const [notifiedTaskIds, setNotifiedTaskIds] = useState<Set<string>>(new Set())
   const { user } = useAuth()
   const [supabase, setSupabase] = useState<SupabaseClient<Database> | null>(null)
-  const [currentDate, setCurrentDate] = useState<string>(new Date().toDateString()) // 現在の日付を追跡
+  const [currentDate, setCurrentDate] = useState<string>(new Date().toDateString())
 
   // 日付変更の検出とタスクリセット
   useEffect(() => {
@@ -241,10 +241,10 @@ export function TodoProvider({ children }: { children: ReactNode }) {
 
         if (tasksError) throw tasksError
 
-        // お気に入りタスクを��得
+        // お気に入りタスクを取得
         const { data: favoritesData, error: favoritesError } = await supabase
           .from("favorite_tasks")
-          .select("text")
+          .select("*") // すべてのフィールドを取得
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
 
@@ -264,7 +264,17 @@ export function TodoProvider({ children }: { children: ReactNode }) {
           })),
         )
 
-        setFavoriteTasks(favoritesData.map((favorite) => favorite.text))
+        setFavoriteTasks(
+          favoritesData.map((favorite) => ({
+            id: favorite.id,
+            user_id: favorite.user_id,
+            text: favorite.text,
+            created_at: favorite.created_at,
+            start_time: favorite.start_time,
+            end_time: favorite.end_time,
+            importance: favorite.importance,
+          })),
+        )
       } catch (error) {
         console.error("データ取得エラー:", error)
       } finally {
@@ -449,41 +459,81 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // お気に入りタスクを追加
-  const addToFavorites = async (text: string) => {
+  // お気に入りタスクを追加（時間と重要度も保存）
+  const addToFavorites = async (text: string, startTime?: string, endTime?: string, importance?: number) => {
     if (!supabase || !user) return
 
-    if (favoriteTasks.includes(text)) return
+    // 同じテキストのお気に入りがあるかチェック
+    if (favoriteTasks.some((task) => task.text === text)) {
+      console.log("同じテキストのお気に入りが既に存在します:", text)
+      return
+    }
 
     try {
-      const { error } = await supabase.from("favorite_tasks").insert([{ user_id: user.id, text }])
+      console.log("お気に入りを追加します:", { text, startTime, endTime, importance })
 
-      if (error) throw error
+      const { data, error } = await supabase
+        .from("favorite_tasks")
+        .insert([
+          {
+            user_id: user.id,
+            text,
+            start_time: startTime || null,
+            end_time: endTime || null,
+            importance: importance || null,
+          },
+        ])
+        .select()
+        .single()
 
-      setFavoriteTasks([...favoriteTasks, text])
+      if (error) {
+        console.error("お気に入り追加エラー:", error)
+        throw error
+      }
+
+      console.log("お気に入りが正常に追加されました:", data)
+
+      setFavoriteTasks([
+        {
+          id: data.id,
+          user_id: data.user_id,
+          text: data.text,
+          created_at: data.created_at,
+          start_time: data.start_time,
+          end_time: data.end_time,
+          importance: data.importance,
+        },
+        ...favoriteTasks,
+      ])
     } catch (error) {
       console.error("お気に入り追加エラー:", error)
+      alert("お気に入りの追加に失敗しました。もう一度お試しください。")
     }
   }
 
-  // お気に入りタスクを削除
-  const removeFromFavorites = async (text: string) => {
+  // お気に入りタスクを削除（IDで削除）
+  const removeFromFavorites = async (id: string) => {
     if (!supabase || !user) return
 
     try {
-      const { error } = await supabase.from("favorite_tasks").delete().eq("user_id", user.id).eq("text", text)
+      const { error } = await supabase.from("favorite_tasks").delete().eq("id", id).eq("user_id", user.id)
 
       if (error) throw error
 
-      setFavoriteTasks(favoriteTasks.filter((task) => task !== text))
+      setFavoriteTasks(favoriteTasks.filter((task) => task.id !== id))
     } catch (error) {
       console.error("お気に入り削除エラー:", error)
     }
   }
 
-  // お気に入りタスクをタスクリストに追加
-  const addFavoriteToTasks = async (text: string, startTime?: string, endTime?: string, importance?: number) => {
-    await addTask(text, startTime, endTime, importance)
+  // お気に入りタスクをタスクリストに追加（FavoriteTaskオブジェクトを受け取る）
+  const addFavoriteToTasks = async (favoriteTask: FavoriteTask) => {
+    await addTask(
+      favoriteTask.text,
+      favoriteTask.start_time || undefined,
+      favoriteTask.end_time || undefined,
+      favoriteTask.importance,
+    )
   }
 
   // リマインダーチェック用の効果

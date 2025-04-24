@@ -64,18 +64,27 @@ export interface Database {
           user_id: string
           text: string
           created_at: string
+          start_time: string | null
+          end_time: string | null
+          importance: number | null
         }
         Insert: {
           id?: string
           user_id: string
           text: string
           created_at?: string
+          start_time?: string | null
+          end_time?: string | null
+          importance?: number | null
         }
         Update: {
           id?: string
           user_id?: string
           text?: string
           created_at?: string
+          start_time?: string | null
+          end_time?: string | null
+          importance?: number | null
         }
       }
       task_history: {

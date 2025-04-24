@@ -30,4 +30,7 @@ export interface FavoriteTask {
   user_id: string
   text: string
   created_at: string
+  start_time?: string // 開始時間を追加
+  end_time?: string // 終了時間を追加
+  importance?: number // 重要度を追加
 }
